@@ -1,7 +1,7 @@
 # Flutter build outputs
 build/
 
-# Symbolic links created by flutter packages get
+# Flutter dependencies and symbolic links
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -10,10 +10,12 @@ build/
 # Dependency directories
 ios/Pods/
 android/.gradle/
+android/.idea/
 
 # IDE directories
 .idea/
 .vscode/
+*.iml
 
 # Local properties
 android/local.properties
@@ -29,8 +31,18 @@ ios/.symlinks/
 *.lock
 *.log
 
-# OS generated files
+# Environment variables
+.env
+
+# macOS
 .DS_Store
 
-# 환경 변수 파일
-.env
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+
+# SQLite DB
+*.db
