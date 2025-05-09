@@ -1690,146 +1690,261 @@ class VoicePriceSetPage extends StatefulWidget {
 }
 
 class _VoicePriceSetPageState extends State<VoicePriceSetPage> {
+  int step = 0;
   String size = '대과';
   String unit = '5kg';
   String packaging = '박스포장';
   String discount = '설정안함';
   final TextEditingController priceController = TextEditingController();
 
+  void nextStep() {
+    if (step < 4) {
+      setState(() => step++);
+    } else {
+      // 완료 처리 (예: 저장, 다음 페이지 이동 등)
+    }
+  }
+
+  Widget buildStepContent() {
+    switch (step) {
+      case 0:
+        return _StepSelector(
+          title: '과일 크기',
+          options: ['소과', '중과', '대과'],
+          selected: size,
+          onSelect: (v) => setState(() => size = v),
+        );
+      case 1:
+        return _StepSelector(
+          title: '판매 단위',
+          options: ['1kg', '3kg', '5kg'],
+          selected: unit,
+          onSelect: (v) => setState(() => unit = v),
+        );
+      case 2:
+        return _StepSelector(
+          title: '포장 방식',
+          options: ['무포장', '박스포장', '선물포장'],
+          selected: packaging,
+          onSelect: (v) => setState(() => packaging = v),
+        );
+      case 3:
+        return _StepInput(
+          title: '가격 설정',
+          controller: priceController,
+        );
+      case 4:
+        return _StepSelector(
+          title: '할인 적용',
+          options: ['설정함', '설정안함'],
+          selected: discount,
+          onSelect: (v) => setState(() => discount = v),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  String get buttonText => step == 4 ? '완료' : '다음';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
-      body: Center(
-        child: Container(
-          margin: const EdgeInsets.all(24),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(32),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
+      backgroundColor: Colors.green[400],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          child: Column(
+            children: [
+              // 상단 바
+              Padding(
+                padding: const EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
+                child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.black),
-                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () {
+                        if (step > 0) {
+                          setState(() => step--);
+                        } else {
+                          Navigator.of(context).pop();
+                        }
+                      },
                     ),
                     const Spacer(),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const Center(
-                  child: Text('상품 가격 설정', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-                ),
-                const SizedBox(height: 32),
-                _sectionTitle('과일 크기'),
-                Row(
-                  children: [
-                    _selectButton('소과', size == '소과', () => setState(() => size = '소과')),
-                    const SizedBox(width: 12),
-                    _selectButton('중과', size == '중과', () => setState(() => size = '중과')),
-                    const SizedBox(width: 12),
-                    _selectButton('대과', size == '대과', () => setState(() => size = '대과')),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                _sectionTitle('판매 단위'),
-                Row(
-                  children: [
-                    _selectButton('1kg', unit == '1kg', () => setState(() => unit = '1kg')),
-                    const SizedBox(width: 12),
-                    _selectButton('3kg', unit == '3kg', () => setState(() => unit = '3kg')),
-                    const SizedBox(width: 12),
-                    _selectButton('5kg', unit == '5kg', () => setState(() => unit = '5kg')),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                _sectionTitle('포장 방식'),
-                Row(
-                  children: [
-                    _selectButton('무포장', packaging == '무포장', () => setState(() => packaging = '무포장')),
-                    const SizedBox(width: 12),
-                    _selectButton('박스포장', packaging == '박스포장', () => setState(() => packaging = '박스포장')),
-                    const SizedBox(width: 12),
-                    _selectButton('선물포장', packaging == '선물포장', () => setState(() => packaging = '선물포장')),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                _sectionTitle('가격 설정'),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: priceController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          hintText: '',
-                          suffixText: '원',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
+                    Container(
+                      width: 44,
+                      height: 4,
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.green[200],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: Stack(
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            width: 44 * ((step + 1) / 5),
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    _selectButton('입력', true, () {}),
                   ],
                 ),
-                const SizedBox(height: 24),
-                _sectionTitle('할인 적용'),
-                Row(
-                  children: [
-                    _selectButton('설정함', discount == '설정함', () => setState(() => discount = '설정함')),
-                    const SizedBox(width: 12),
-                    _selectButton('설정안함', discount == '설정안함', () => setState(() => discount = '설정안함')),
-                  ],
+              ),
+              const SizedBox(height: 24),
+              Expanded(
+                child: Center(
+                  child: buildStepContent(),
                 ),
-                const SizedBox(height: 36),
-                SizedBox(
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                child: SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 54,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      elevation: 2,
                     ),
-                    onPressed: () {},
-                    child: const Text('완료', style: TextStyle(fontSize: 20, color: Colors.white)),
+                    onPressed: nextStep,
+                    child: Text(
+                      buttonText,
+                      style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _sectionTitle(String title) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-      );
+class _StepSelector extends StatelessWidget {
+  final String title;
+  final List<String> options;
+  final String selected;
+  final ValueChanged<String> onSelect;
+  const _StepSelector({required this.title, required this.options, required this.selected, required this.onSelect});
 
-  Widget _selectButton(String label, bool selected, VoidCallback onTap) {
-    return Expanded(
-      child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          backgroundColor: selected ? Colors.green[50] : Colors.white,
-          side: BorderSide(color: selected ? Colors.green : Colors.grey.shade400, width: 1.5),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        onPressed: onTap,
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected ? Colors.green : Colors.grey[800],
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+  @override
+  Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isSmall = screenWidth < 370;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 38, horizontal: 18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.10),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
-        ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 1.1),
+          ),
+          const SizedBox(height: 40),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 10,
+            runSpacing: 14,
+            children: options.map((opt) {
+              final bool isSelected = selected == opt;
+              return OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: isSelected ? Colors.green[600] : Colors.white,
+                  side: BorderSide(color: isSelected ? Colors.green : Colors.grey.shade300, width: 2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: EdgeInsets.symmetric(
+                    vertical: isSmall ? 14 : 22,
+                    horizontal: isSmall ? 16 : 28,
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: () => onSelect(opt),
+                child: Text(
+                  opt,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black,
+                    fontWeight: FontWeight.w600,
+                    fontSize: isSmall ? 15 : 18,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepInput extends StatelessWidget {
+  final String title;
+  final TextEditingController controller;
+  const _StepInput({required this.title, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 38, horizontal: 18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.10),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 1.1),
+          ),
+          const SizedBox(height: 40),
+          SizedBox(
+            width: 220,
+            child: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+              decoration: InputDecoration(
+                hintText: '가격을 입력하세요',
+                suffixText: '원',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
