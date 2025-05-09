@@ -244,87 +244,276 @@ class IntroScreen extends StatelessWidget {
   }
 }
 
-class ProductDetailPage extends StatelessWidget {
+class ProductDetailPage extends StatefulWidget {
   const ProductDetailPage({super.key});
+
+  @override
+  State<ProductDetailPage> createState() => _ProductDetailPageState();
+}
+
+class _ProductDetailPageState extends State<ProductDetailPage> {
+  final ScrollController _scrollController = ScrollController();
+  final List<String> _tabs = ['상품설명', '상세정보', '후기 0', '문의'];
+  int _selectedTab = 0;
+
+  final _descKey = GlobalKey();
+  final _detailKey = GlobalKey();
+  final _reviewKey = GlobalKey();
+  final _qnaKey = GlobalKey();
+  final _listViewKey = GlobalKey();
+
+  // 각 섹션의 위치를 저장
+  final Map<int, double> _sectionOffsets = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _calculateSectionOffsets());
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _calculateSectionOffsets() {
+    _sectionOffsets.clear();
+    RenderBox? listBox = _listViewKey.currentContext?.findRenderObject() as RenderBox?;
+    double listTop = listBox?.localToGlobal(Offset.zero).dy ?? 0;
+    RenderBox? box1 = _descKey.currentContext?.findRenderObject() as RenderBox?;
+    RenderBox? box2 = _detailKey.currentContext?.findRenderObject() as RenderBox?;
+    RenderBox? box3 = _reviewKey.currentContext?.findRenderObject() as RenderBox?;
+    RenderBox? box4 = _qnaKey.currentContext?.findRenderObject() as RenderBox?;
+    _sectionOffsets[0] = (box1?.localToGlobal(Offset.zero).dy ?? 0) - listTop + _scrollController.offset;
+    _sectionOffsets[1] = (box2?.localToGlobal(Offset.zero).dy ?? 0) - listTop + _scrollController.offset;
+    double offset1 = box1?.localToGlobal(Offset.zero, ancestor: context.findRenderObject()).dy ?? 0;
+    double offset2 = box2?.localToGlobal(Offset.zero, ancestor: context.findRenderObject()).dy ?? 0;
+    double offset3 = box3?.localToGlobal(Offset.zero, ancestor: context.findRenderObject()).dy ?? 0;
+    double offset4 = box4?.localToGlobal(Offset.zero, ancestor: context.findRenderObject()).dy ?? 0;
+    _sectionOffsets[0] = offset1;
+    _sectionOffsets[1] = offset2;
+    _sectionOffsets[2] = offset3;
+    _sectionOffsets[3] = offset4;
+  }
+
+  void _onScroll() {
+    // 현재 스크롤 위치에 따라 탭 활성화 변경
+    double scrollOffset = _scrollController.offset + 100; // 약간의 버퍼
+    int newTab = 0;
+    for (int i = 0; i < _tabs.length; i++) {
+      if (_sectionOffsets[i] != null && scrollOffset >= _sectionOffsets[i]!) {
+        newTab = i;
+      }
+    }
+    if (newTab != _selectedTab) {
+      setState(() {
+        _selectedTab = newTab;
+      });
+    }
+  }
+
+  void _scrollToSection(int idx) {
+    final offset = _sectionOffsets[idx];
+    if (offset != null) {
+      _scrollController.animateTo(
+        offset - 80, // AppBar, 탭바 높이만큼 보정
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {},
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           '[KF365] 유명산지 고당도 사과',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
           overflow: TextOverflow.ellipsis,
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () {},
-          ),
-        ],
+        centerTitle: false,
       ),
-      body: ListView(
+      body: Column(
         children: [
-          Image.asset(
-            'assets/images/apple.png',
-            height: 300,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text(
-              '[KF365] 유명산지 고당도사과 1.5kg (5~6입)',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          // 탭바
+          Container(
+            color: Colors.white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(_tabs.length, (idx) {
+                final selected = _selectedTab == idx;
+                return GestureDetector(
+                  onTap: () => _scrollToSection(idx),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: selected ? Colors.green : Colors.transparent,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      _tabs[idx],
+                      style: TextStyle(
+                        color: selected ? Colors.green : Colors.grey[700],
+                        fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                );
+              }),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              '아삭아삭 달콤한 제철 과일',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+          Expanded(
+            child: NotificationListener<ScrollEndNotification>(
+              onNotification: (_) {
+                WidgetsBinding.instance.addPostFrameCallback((_) => _calculateSectionOffsets());
+                return false;
+              },
+              child: ListView(
+                controller: _scrollController,
+                padding: EdgeInsets.zero,
+                children: [
+                  // 상품 이미지
+                  Image.asset(
+                    'assets/images/apple.png',
+                    width: double.infinity,
+                    fit: BoxFit.fitWidth,
+                  ),
+                  // 상품 정보 카드
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('[KF365] 유명산지 고당도 사과 5kg',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        SizedBox(height: 8),
+                        Text('아삭아삭 달콤한 제철 과일',
+                            style: TextStyle(fontSize: 14, color: Colors.grey)),
+                        SizedBox(height: 8),
+                        Text('원산지: 국산', style: TextStyle(fontSize: 14)),
+                        SizedBox(height: 10),
+                        Text('₩35,000', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+                      ],
+                    ),
+                  ),
+                  // 상품설명
+                  Container(
+                    key: _descKey,
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      '신선한 사과를 산지에서 바로 배송해드립니다.\n\n달콤함과 아삭함이 살아있는 고품질 사과를 경험해보세요!',
+                      style: TextStyle(fontSize: 15, color: Colors.black87),
+                    ),
+                  ),
+                  // 상세정보
+                  Container(
+                    key: _detailKey,
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      '포장타입: 냉장(종이포장)\n중량/용량: 5kg 내외\n당도: 14.4 Brix 이상\n\n신선식품 특성상 약간의 중량 차이가 있을 수 있습니다.',
+                      style: TextStyle(fontSize: 15, color: Colors.black87),
+                    ),
+                  ),
+                  // 후기
+                  Container(
+                    key: _reviewKey,
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text('아직 후기가 없습니다.', style: TextStyle(fontSize: 15)),
+                  ),
+                  // 문의
+                  Container(
+                    key: _qnaKey,
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text('문의사항이 없습니다.', style: TextStyle(fontSize: 15)),
+                  ),
+                  const SizedBox(height: 80), // 하단 버튼 공간 확보
+                ],
+              ),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text('원산지: 국산', style: TextStyle(fontSize: 14)),
-          ),
-          const Divider(height: 32),
-          // 상품정보 등 상세 설명은 기존 심플 버전으로 유지
         ],
       ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
+        color: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.favorite_border),
-              onPressed: () {},
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.favorite_border, color: Colors.black54),
+                onPressed: () {},
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             Expanded(
               child: SizedBox(
-                height: 50,
+                height: 48,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: Colors.green,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   onPressed: () {
-                    // 구매하기 로직
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => OrderPage(productName: '[KF365] 유명산지 고당도 사과 5kg'),
+                      ),
+                    );
                   },
-                  child: const Text("구매하기", style: TextStyle(fontSize: 16)),
+                  child: const Text("구매하기", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ),
             ),
@@ -436,30 +625,37 @@ class _MapSearchPageState extends State<MapSearchPage> {
                             width: 120,
                             height: 40,
                             point: farm.location,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.location_on, color: Colors.green, size: 36),
-                                SizedBox(width: 4),
-                                Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.85),
-                                    borderRadius: BorderRadius.circular(8),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.07),
-                                        blurRadius: 4,
-                                        offset: Offset(0, 2),
-                                      ),
-                                    ],
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => const ProductDetailPage()),
+                                );
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.location_on, color: Colors.green, size: 36),
+                                  SizedBox(width: 4),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.85),
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.07),
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      farm.name,
+                                      style: TextStyle(fontSize: 12, color: Colors.green[900], fontWeight: FontWeight.w500),
+                                    ),
                                   ),
-                                  child: Text(
-                                    farm.name,
-                                    style: TextStyle(fontSize: 12, color: Colors.green[900], fontWeight: FontWeight.w500),
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         )
