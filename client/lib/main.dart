@@ -1379,11 +1379,15 @@ class SellInputPage extends StatefulWidget {
 
 class _SellInputPageState extends State<SellInputPage> {
   final TextEditingController _controller = TextEditingController();
-  final List<String> _products = ['사과', '딸기', '포도', '복숭아', '감자'];
-  String? _selectedProduct;
+  final List<Map<String, String>> _products = [
+    {'name': '사과', 'image': 'assets/images/applem.png'},
+    {'name': '바나나', 'image': 'assets/images/bananam.png'},
+    {'name': '양배추', 'image': 'assets/images/cabbagem.png'},
+    {'name': '가지', 'image': 'assets/images/eggplantm.png'},
+  ];
+  int? _selectedIndex;
 
   void _goToNext(String product) {
-    // 다음 단계로 이동 (DetailCreatePage)
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const DetailCreatePage()),
     );
@@ -1392,7 +1396,7 @@ class _SellInputPageState extends State<SellInputPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -1403,77 +1407,158 @@ class _SellInputPageState extends State<SellInputPage> {
         title: const Text('판매 상품 입력', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            // 대표 상품 버튼들
-            ..._products.map((product) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: SizedBox(
-                width: 120,
-                height: 44,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: _selectedProduct == product ? Colors.green[50] : Colors.white,
-                    side: BorderSide(color: _selectedProduct == product ? Colors.green : Colors.grey.shade400, width: 1.5),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _selectedProduct = product;
-                    });
-                    Future.delayed(const Duration(milliseconds: 120), () => _goToNext(product));
-                  },
-                  child: Text(
-                    product,
-                    style: TextStyle(
-                      color: _selectedProduct == product ? Colors.green : Colors.grey[800],
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 안내 박스: 텍스트 + 이미지, 네모 테두리
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.green, width: 2),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text(
+                            '판매하려는',
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
+                              height: 1.1,
+                            ),
+                          ),
+                          Text(
+                            '과일을 선택하세요',
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
+                              height: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      child: Image.asset(
+                        'assets/images/fruits.png',
+                        height: 110,
+                        width: 110,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            )),
-            const SizedBox(height: 18),
-            const Text('여기에 없다면 직접 입력해 주세요', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    style: const TextStyle(fontSize: 16),
-                    decoration: const InputDecoration(
-                      hintText: '예시) 사과',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                    ),
-                  ),
+              const SizedBox(height: 2),
+              // 카드 UI
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _products.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.8,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
                 ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  height: 48,
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.green, width: 1.5),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    onPressed: () {
-                      if (_controller.text.trim().isNotEmpty) {
-                        _goToNext(_controller.text.trim());
-                      }
+                itemBuilder: (context, index) {
+                  final product = _products[index];
+                  final isSelected = _selectedIndex == index;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = index;
+                      });
+                      Future.delayed(const Duration(milliseconds: 120), () => _goToNext(product['name']!));
                     },
-                    child: const Text('입력', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
-                  ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected ? Colors.lightGreen : Colors.grey.shade200,
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(product['image']!, width: 90, height: 90),
+                          const SizedBox(height: 16),
+                          Text(
+                            product['name']!,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 2),
+              const Text('여기에 없다면 직접 입력해 주세요', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 4),
+              Focus(
+                child: Builder(
+                  builder: (context) {
+                    final hasFocus = Focus.of(context).hasFocus;
+                    return TextField(
+                      controller: _controller,
+                      style: const TextStyle(fontSize: 16),
+                      decoration: InputDecoration(
+                        hintText: '예시) 사과',
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: hasFocus ? Colors.green : Colors.grey,
+                            width: 1.5,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.green,
+                            width: 2,
+                          ),
+                        ),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.play_arrow, color: Colors.green, size: 36),
+                          onPressed: () {
+                            if (_controller.text.trim().isNotEmpty) {
+                              _goToNext(_controller.text.trim());
+                            }
+                          },
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
