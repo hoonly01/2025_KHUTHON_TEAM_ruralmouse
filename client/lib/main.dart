@@ -2086,9 +2086,9 @@ class _VoicePriceSetAllInOnePageState extends State<VoicePriceSetAllInOnePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSelector('과일 크기', ['소과', '중과', '대과'], size, (v) => setState(() => size)),
-              _buildSelector('판매 단위', ['1kg', '3kg', '5kg'], unit, (v) => setState(() => unit)),
-              _buildSelector('포장 방식', ['무포장', '박스포장', '선물포장'], packaging, (v) => setState(() => packaging)),
+              _buildSelector('과일 크기', ['소과', '중과', '대과'], size, (v) => setState(() => size = v)),
+              _buildSelector('판매 단위', ['1kg', '3kg', '5kg'], unit, (v) => setState(() => unit = v)),
+              _buildSelector('포장 방식', ['무포장', '박스포장', '선물포장'], packaging, (v) => setState(() => packaging = v)),
               const Text('가격 설정', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 10),
               Row(
@@ -2107,7 +2107,7 @@ class _VoicePriceSetAllInOnePageState extends State<VoicePriceSetAllInOnePage> {
                 ],
               ),
               const SizedBox(height: 18),
-              _buildSelector('할인 적용', ['설정함', '설정안함'], discount, (v) => setState(() => discount)),
+              _buildSelector('할인 적용', ['설정함', '설정안함'], discount, (v) => setState(() => discount = v)),
               const SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
