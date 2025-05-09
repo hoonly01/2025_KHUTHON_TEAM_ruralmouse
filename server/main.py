@@ -65,5 +65,8 @@ async def get_transcription(transcription_id: int, db: Session = Depends(get_db)
         raise HTTPException(status_code=404, detail="Transcription not found")
     return transcription
 
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="localhost", port=8080, reload=True)
+
+
