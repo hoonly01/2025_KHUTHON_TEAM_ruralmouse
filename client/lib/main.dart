@@ -4,6 +4,8 @@ import 'dart:ui';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:ui' as ui;
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class Farm {
   final LatLng location;
@@ -1148,7 +1150,11 @@ class DetailCreatePage extends StatelessWidget {
             _SelectBox(
               title: '자동으로 생성하기',
               subtitle: '사진과 음성을 통해서 자동으로\n상품의 상세 화면을 생성해드려요.',
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AutoGeneratePage()),
+                );
+              },
             ),
           ],
         ),
@@ -1474,6 +1480,355 @@ class _SellInputPageState extends State<SellInputPage> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class AutoGeneratePage extends StatefulWidget {
+  const AutoGeneratePage({super.key});
+
+  @override
+  State<AutoGeneratePage> createState() => _AutoGeneratePageState();
+}
+
+class _AutoGeneratePageState extends State<AutoGeneratePage> {
+  bool isRecording = false;
+  Duration recordDuration = Duration.zero;
+  Timer? _timer;
+  File? _selectedImage;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _selectedImage = File(picked.path);
+      });
+    }
+  }
+
+  void _startRecording() {
+    setState(() {
+      isRecording = true;
+      recordDuration = Duration.zero;
+    });
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        recordDuration += const Duration(seconds: 1);
+      });
+    });
+  }
+
+  void _stopRecording() {
+    setState(() {
+      isRecording = false;
+    });
+    _timer?.cancel();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('자동 생성', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 사진 추가
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      if (_selectedImage != null)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(_selectedImage!, width: 120, height: 120, fit: BoxFit.cover),
+                        )
+                      else ...[
+                        Icon(Icons.add, size: 40, color: Colors.grey[400]),
+                        const SizedBox(height: 8),
+                        Text('사진 추가', style: TextStyle(color: Colors.grey[700], fontSize: 16)),
+                      ],
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                          onPressed: _pickImage,
+                          icon: const Icon(Icons.image),
+                          label: const Text('사진 업로드하기'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // 음성 녹음
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.mic, size: 40, color: Colors.green),
+                    const SizedBox(height: 8),
+                    Text(
+                      _formatDuration(recordDuration),
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(isRecording ? '녹음 중...' : '녹음 준비', style: TextStyle(color: Colors.grey[600], fontSize: 15)),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                        onPressed: isRecording ? _stopRecording : _startRecording,
+                        icon: Icon(isRecording ? Icons.stop : Icons.mic),
+                        label: Text(isRecording ? '녹음 종료' : '녹음 시작'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // 녹음 팁
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('음성 설명 녹음 팁:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    SizedBox(height: 8),
+                    Text('• 상품의 주요 특징을 말씀해주세요'),
+                    Text('• 재배 방법이나 특별한 점을 언급해주세요'),
+                    Text('• 소비자에게 전하고 싶은 메시지를 담아주세요'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const VoicePriceSetPage()),
+              );
+            },
+            child: const Text('업로드 완료', style: TextStyle(fontSize: 16, color: Colors.white)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDuration(Duration d) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    return "${twoDigits(d.inMinutes)}:${twoDigits(d.inSeconds % 60)}";
+  }
+}
+
+class VoicePriceSetPage extends StatefulWidget {
+  const VoicePriceSetPage({super.key});
+
+  @override
+  State<VoicePriceSetPage> createState() => _VoicePriceSetPageState();
+}
+
+class _VoicePriceSetPageState extends State<VoicePriceSetPage> {
+  String size = '대과';
+  String unit = '5kg';
+  String packaging = '박스포장';
+  String discount = '설정안함';
+  final TextEditingController priceController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      body: Center(
+        child: Container(
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(32),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.black),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    const Spacer(),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Center(
+                  child: Text('상품 가격 설정', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                ),
+                const SizedBox(height: 32),
+                _sectionTitle('과일 크기'),
+                Row(
+                  children: [
+                    _selectButton('소과', size == '소과', () => setState(() => size = '소과')),
+                    const SizedBox(width: 12),
+                    _selectButton('중과', size == '중과', () => setState(() => size = '중과')),
+                    const SizedBox(width: 12),
+                    _selectButton('대과', size == '대과', () => setState(() => size = '대과')),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _sectionTitle('판매 단위'),
+                Row(
+                  children: [
+                    _selectButton('1kg', unit == '1kg', () => setState(() => unit = '1kg')),
+                    const SizedBox(width: 12),
+                    _selectButton('3kg', unit == '3kg', () => setState(() => unit = '3kg')),
+                    const SizedBox(width: 12),
+                    _selectButton('5kg', unit == '5kg', () => setState(() => unit = '5kg')),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _sectionTitle('포장 방식'),
+                Row(
+                  children: [
+                    _selectButton('무포장', packaging == '무포장', () => setState(() => packaging = '무포장')),
+                    const SizedBox(width: 12),
+                    _selectButton('박스포장', packaging == '박스포장', () => setState(() => packaging = '박스포장')),
+                    const SizedBox(width: 12),
+                    _selectButton('선물포장', packaging == '선물포장', () => setState(() => packaging = '선물포장')),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _sectionTitle('가격 설정'),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: priceController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          hintText: '',
+                          suffixText: '원',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    _selectButton('입력', true, () {}),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _sectionTitle('할인 적용'),
+                Row(
+                  children: [
+                    _selectButton('설정함', discount == '설정함', () => setState(() => discount = '설정함')),
+                    const SizedBox(width: 12),
+                    _selectButton('설정안함', discount == '설정안함', () => setState(() => discount = '설정안함')),
+                  ],
+                ),
+                const SizedBox(height: 36),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () {},
+                    child: const Text('완료', style: TextStyle(fontSize: 20, color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+      );
+
+  Widget _selectButton(String label, bool selected, VoidCallback onTap) {
+    return Expanded(
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          backgroundColor: selected ? Colors.green[50] : Colors.white,
+          side: BorderSide(color: selected ? Colors.green : Colors.grey.shade400, width: 1.5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        onPressed: onTap,
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.green : Colors.grey[800],
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
       ),
     );
