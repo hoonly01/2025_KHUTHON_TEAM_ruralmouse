@@ -233,97 +233,6 @@ class IntroScreen extends StatelessWidget {
   }
 }
 
-class ProductDetailPage extends StatelessWidget {
-  const ProductDetailPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {},
-        ),
-        title: const Text(
-          '[KF365] 유명산지 고당도 사과',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          overflow: TextOverflow.ellipsis,
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: ListView(
-        children: [
-          Image.asset(
-            'assets/images/apple.png',
-            height: 300,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text(
-              '[KF365] 유명산지 고당도사과 1.5kg (5~6입)',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              '아삭아삭 달콤한 제철 과일',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text('원산지: 국산', style: TextStyle(fontSize: 14)),
-          ),
-          const Divider(height: 32),
-          // 상품정보 등 상세 설명은 기존 심플 버전으로 유지
-        ],
-      ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.favorite_border),
-              onPressed: () {},
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: SizedBox(
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () {
-                    // 구매하기 로직
-                  },
-                  child: const Text("구매하기", style: TextStyle(fontSize: 16)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class MapSearchPage extends StatefulWidget {
   const MapSearchPage({super.key});
 
@@ -332,25 +241,49 @@ class MapSearchPage extends StatefulWidget {
 }
 
 class _MapSearchPageState extends State<MapSearchPage> {
-  String search = '';
-  bool showAppleRegion = false;
-  bool showFarmPins = false;
+  String selectedCategory = '';
+  final MapController _mapController = MapController();
 
-  // 경상북도(사과 유명) 폴리곤 예시 좌표 (실제와 다름)
-  final List<LatLng> gyeongbukPolygon = [
-    LatLng(36.5, 128.0),
-    LatLng(36.7, 129.0),
-    LatLng(36.2, 129.2),
-    LatLng(35.7, 128.8),
-    LatLng(35.8, 128.0),
-    LatLng(36.1, 127.8),
-    LatLng(36.5, 128.0),
-  ];
+  // 카테고리별 지역 폴리곤 (예시, 실제 좌표는 필요시 수정)
+  final Map<String, List<LatLng>> categoryPolygons = {
+    '사과': [
+      LatLng(36.5, 128.0), LatLng(36.7, 129.0), LatLng(36.2, 129.2), LatLng(35.7, 128.8), LatLng(35.8, 128.0), LatLng(36.1, 127.8), LatLng(36.5, 128.0),
+    ], // 경상북도
+    '복숭아': [
+      LatLng(36.5, 127.0), LatLng(36.7, 127.5), LatLng(36.2, 127.7), LatLng(35.7, 127.3), LatLng(35.8, 127.0), LatLng(36.1, 126.8), LatLng(36.5, 127.0),
+    ], // 충남(예시)
+    '포도': [
+      LatLng(36.2, 128.0), LatLng(36.4, 128.7), LatLng(35.9, 128.9), LatLng(35.5, 128.5), LatLng(35.7, 128.0), LatLng(36.0, 127.7), LatLng(36.2, 128.0),
+    ], // 경북(예시)
+    '귤': [
+      LatLng(33.3, 126.2), LatLng(33.5, 126.7), LatLng(33.2, 126.9), LatLng(33.1, 126.5), LatLng(33.3, 126.2),
+    ], // 제주(예시)
+  };
 
-  // 농가 마커 예시 좌표
-  final List<LatLng> farmPins = [
-    LatLng(36.4, 128.4),
-    LatLng(36.0, 128.6),
+  // 카테고리별 중심 좌표와 줌
+  final Map<String, LatLng> categoryCenters = {
+    '사과': LatLng(36.5, 128.5),
+    '복숭아': LatLng(36.3, 127.2),
+    '포도': LatLng(36.1, 128.5),
+    '귤': LatLng(33.4, 126.5),
+  };
+  final Map<String, double> categoryZooms = {
+    '사과': 8.0,
+    '복숭아': 8.0,
+    '포도': 8.0,
+    '귤': 9.0,
+  };
+
+  // 과일별 농가 마커 예시 좌표
+  final Map<String, List<LatLng>> categoryFarms = {
+    '사과': [LatLng(36.4, 128.4), LatLng(36.0, 128.6)],
+    '복숭아': [LatLng(36.3, 127.2)],
+    '포도': [LatLng(36.1, 128.5)],
+    '귤': [LatLng(33.4, 126.6)],
+  };
+
+  final List<String> categories = [
+    '사과', '복숭아', '포도', '귤', '배', '자두', '감', '딸기', '참외', '수박', '멜론', '블루베리', '오렌지', '레몬', '체리'
   ];
 
   @override
@@ -359,108 +292,108 @@ class _MapSearchPageState extends State<MapSearchPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: TextField(
-          decoration: InputDecoration(
-            hintText: '상품을 검색하세요',
-            border: InputBorder.none,
-            prefixIcon: Icon(Icons.search),
-          ),
-          onChanged: (value) {
-            setState(() {
-              search = value;
-              showAppleRegion = value.contains('사과');
-              showFarmPins = false;
-            });
-          },
-          onSubmitted: (value) {
-            if (value.contains('사과')) {
-              setState(() {
-                showAppleRegion = true;
-                showFarmPins = false;
-              });
-            }
-          },
-        ),
+        title: const Text('농가 지도 검색', style: TextStyle(color: Colors.black)),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: FlutterMap(
-        options: MapOptions(
-          center: LatLng(36.5, 128.5),
-          zoom: 7.2,
-          onTap: (tapPosition, point) {
-            if (showAppleRegion && _pointInPolygon(point, gyeongbukPolygon)) {
-              setState(() {
-                showFarmPins = true;
-              });
-            }
-          },
-        ),
+      body: Column(
         children: [
-          TileLayer(
-            urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-            subdomains: ['a', 'b', 'c', 'd'],
-            userAgentPackageName: 'com.example.app',
-          ),
-          if (showAppleRegion)
-            PolygonLayer(
-              polygons: [
-                Polygon(
-                  points: gyeongbukPolygon,
-                  color: Colors.red.withOpacity(0.4),
-                  borderStrokeWidth: 2,
-                  borderColor: Colors.red,
-                ),
-              ],
-            ),
-          if (showFarmPins)
-            MarkerLayer(
-              markers: farmPins
-                  .map(
-                    (pin) => Marker(
-                      width: 40,
-                      height: 40,
-                      point: pin,
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const ProductDetailPage()),
-                          );
-                        },
-                        child: Icon(Icons.location_on, color: Colors.green, size: 36),
+          // 카테고리 버튼 툴바 (배경 완전 흰색)
+          Container(
+            color: Colors.white,
+            child: SizedBox(
+              height: 56,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                itemCount: categories.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, idx) {
+                  final cat = categories[idx];
+                  final isSelected = cat == selectedCategory;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedCategory = cat;
+                      });
+                      // 지도 이동/강조는 기존 4개만
+                      if (categoryCenters.containsKey(cat)) {
+                        _mapController.move(
+                          categoryCenters[cat]!,
+                          categoryZooms[cat]!,
+                        );
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isSelected ? Colors.green : Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.green),
+                      ),
+                      child: Text(
+                        cat,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.green,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
-                  )
-                  .toList(),
+                  );
+                },
+              ),
             ),
+          ),
+          Expanded(
+            child: FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                center: LatLng(36.5, 127.8), // 전국 중심
+                zoom: 6.5, // 전국 줌
+                onMapReady: () {
+                  if (selectedCategory.isNotEmpty) {
+                    _mapController.move(
+                      categoryCenters[selectedCategory]!,
+                      categoryZooms[selectedCategory]!,
+                    );
+                  }
+                },
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                  subdomains: ['a', 'b', 'c', 'd'],
+                  userAgentPackageName: 'com.example.app',
+                ),
+                if (selectedCategory.isNotEmpty && categoryPolygons[selectedCategory] != null)
+                  PolygonLayer(
+                    polygons: [
+                      Polygon(
+                        points: categoryPolygons[selectedCategory]!,
+                        color: Colors.green.withOpacity(0.22), // 연한 초록
+                        borderStrokeWidth: 2,
+                        borderColor: Colors.green,
+                      ),
+                    ],
+                  ),
+                if (selectedCategory.isNotEmpty && categoryFarms[selectedCategory] != null)
+                  MarkerLayer(
+                    markers: categoryFarms[selectedCategory]!
+                        .map(
+                          (pin) => Marker(
+                            width: 40,
+                            height: 40,
+                            point: pin,
+                            child: Icon(Icons.location_on, color: Colors.green, size: 36),
+                          ),
+                        )
+                        .toList(),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
     );
-  }
-
-  // 폴리곤 내부 클릭 판정 (Ray-casting 알고리즘)
-  bool _pointInPolygon(LatLng point, List<LatLng> polygon) {
-    int intersectCount = 0;
-    for (int j = 0; j < polygon.length - 1; j++) {
-      if (_rayCastIntersect(point, polygon[j], polygon[j + 1])) {
-        intersectCount++;
-      }
-    }
-    return (intersectCount % 2) == 1;
-  }
-
-  bool _rayCastIntersect(LatLng point, LatLng vertA, LatLng vertB) {
-    double aY = vertA.latitude;
-    double bY = vertB.latitude;
-    double aX = vertA.longitude;
-    double bX = vertB.longitude;
-    double pY = point.latitude;
-    double pX = point.longitude;
-
-    if ((aY > pY && bY > pY) || (aY < pY && bY < pY) || (aX < pX && bX < pX)) {
-      return false;
-    }
-    double m = (bY - aY) / (bX - aX);
-    double bee = -aX * m + aY;
-    double x = (pY - bee) / m;
-    return x > pX;
   }
 }
