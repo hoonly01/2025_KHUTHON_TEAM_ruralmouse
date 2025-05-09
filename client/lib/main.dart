@@ -337,7 +337,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          '[KF365] 유명산지 고당도 사과',
+          '춘산과수원',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
           overflow: TextOverflow.ellipsis,
         ),
@@ -411,7 +411,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
-                        Text('[KF365] 유명산지 고당도 사과 5kg',
+                        Text('유명산지 고당도 사과 5kg',
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         SizedBox(height: 8),
                         Text('아삭아삭 달콤한 제철 과일',
@@ -567,8 +567,8 @@ class _MapSearchPageState extends State<MapSearchPage> {
 
   // 2. 농가 마커에 이름 포함
   final Map<String, List<Farm>> categoryFarms = {
-    '사과': [Farm(LatLng(36.4, 128.4), '경북사과농장'), Farm(LatLng(36.0, 128.6), '청송사과팜')],
-    '복숭아': [Farm(LatLng(36.3, 127.2), '충남복숭아농장')],
+    '사과': [Farm(LatLng(36.4, 128.4), '춘산과수원'), Farm(LatLng(36.0, 128.6), '청송사과팜')],
+    '복숭아': [Farm(LatLng(36.3, 127.2), '치악산복숭아')],
     '포도': [Farm(LatLng(36.1, 128.5), '경북포도농장')],
     '귤': [Farm(LatLng(33.4, 126.6), '제주귤농장')],
   };
@@ -953,11 +953,12 @@ class _OrderPageState extends State<OrderPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey[200],
+                          backgroundColor: Colors.white,
                           foregroundColor: Colors.black,
                           elevation: 0,
+                          side: const BorderSide(color: Colors.green, width: 1),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(4),
                           ),
                           minimumSize: const Size(0, 36),
                           padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
