@@ -7,29 +7,14 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: '농산물 앱',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        fontFamily: 'Pretendard', // 원하는 경우 커스텀 폰트
       ),
       home: const ProductDetailPage(),
       debugShowCheckedModeBanner: false,
@@ -43,133 +28,126 @@ class ProductDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA), // 연한 회색 배경
-      body: SafeArea(
-        child: Column(
+      backgroundColor: const Color(0xFFF5F6FA),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {},
+        ),
+        title: const Text(
+          '[KF365] 유명산지 고당도 사과',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          overflow: TextOverflow.ellipsis,
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share_outlined),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: ListView(
+        children: [
+          Image.asset(
+            'assets/images/apple.png',
+            height: 300,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              '[KF365] 유명산지 고당도사과 1.5kg (5~6입)',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              '아삭아삭 달콤한 제철 과일',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Text('원산지: 국산', style: TextStyle(fontSize: 14)),
+          ),
+          const Divider(height: 32),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text("상품정보", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 8),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                InfoRow("포장타입", "냉장 (종이포장)"),
+                InfoRow("판매단위", "1팩"),
+                InfoRow("중량/용량", "1.5kg 내외"),
+                InfoRow("소비기한", "신선식품이므로 빠르게 드시기 바랍니다."),
+                InfoRow("당도", "14.4 Brix 이상"),
+                InfoRow("안내사항", "신선식품 특성상 차이 발생 가능"),
+              ],
+            ),
+          ),
+          const SizedBox(height: 100),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        child: Row(
           children: [
-            // 상단 이미지와 아이콘
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.arrow_back, color: Colors.black),
-                  ),
-                  CircleAvatar(
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.search, color: Colors.black),
-                  ),
-                ],
-              ),
+            IconButton(
+              icon: const Icon(Icons.favorite_border),
+              onPressed: () {},
             ),
-            Image.asset(
-              'assets/images/apple.png',
-              height: 200,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(height: 24),
-            // 상품명, 가격, 수량
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('청송사과', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 4),
-                        Text('1kg, 5000원', style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.white,
-                        child: Icon(Icons.remove, color: Colors.green),
-                      ),
-                      const SizedBox(width: 8),
-                      Text('4', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 8),
-                      CircleAvatar(
-                        backgroundColor: Colors.green,
-                        child: Icon(Icons.add, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            // 별점 카드
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Icon(Icons.star, color: Colors.amber, size: 32),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text('4.8', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 18)),
-                            Text(' (256)', style: TextStyle(color: Colors.grey)),
-                          ],
-                        ),
-                        Text('Reviews', style: TextStyle(color: Colors.grey)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // 농가 설명
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('농가 설명', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-            ),
-            const Spacer(),
-            // Add to cart 버튼
-            Padding(
-              padding: const EdgeInsets.all(24),
+            const SizedBox(width: 8),
+            Expanded(
               child: SizedBox(
-                width: double.infinity,
-                height: 56,
+                height: 50,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: Colors.deepPurple,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(32),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onPressed: () {},
-                  child: Text('Add to cart', style: TextStyle(fontSize: 18, color: Colors.white)),
+                  onPressed: () {
+                    // 구매하기 로직
+                  },
+                  child: const Text("구매하기", style: TextStyle(fontSize: 16)),
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class InfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const InfoRow(this.label, this.value, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 100, child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold))),
+          const SizedBox(width: 8),
+          Expanded(child: Text(value)),
+        ],
       ),
     );
   }
