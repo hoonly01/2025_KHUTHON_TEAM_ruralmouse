@@ -1788,14 +1788,14 @@ class _AutoGeneratePageState extends State<AutoGeneratePage> {
   bool isRecording = false;
   Duration recordDuration = Duration.zero;
   Timer? _timer;
-  File? _selectedImage;
+  List<File> _selectedImages = [];
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
+    final picked = await picker.pickMultiImage();
+    if (picked != null && picked.isNotEmpty) {
       setState(() {
-        _selectedImage = File(picked.path);
+        _selectedImages.addAll(picked.map((x) => File(x.path)));
       });
     }
   }
@@ -1911,10 +1911,40 @@ class _AutoGeneratePageState extends State<AutoGeneratePage> {
                   ),
                   child: Column(
                     children: [
-                      if (_selectedImage != null)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(_selectedImage!, width: 120, height: 120, fit: BoxFit.cover),
+                      if (_selectedImages.isNotEmpty)
+                        SizedBox(
+                          height: 120,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _selectedImages.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 10),
+                            itemBuilder: (context, idx) => Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.file(_selectedImages[idx], width: 120, height: 120, fit: BoxFit.cover),
+                                ),
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedImages.removeAt(idx);
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.black54,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(Icons.close, color: Colors.white, size: 20),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         )
                       else ...[
                         Icon(Icons.add, size: 48, color: Colors.green),
@@ -2088,8 +2118,8 @@ class _VoicePriceSetAllInOnePageState extends State<VoicePriceSetAllInOnePage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const GeneratedDetailPage()),
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const ProductDetailPage()),
                     );
                   },
                   child: const Text('완료', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
@@ -2183,6 +2213,32 @@ class _GeneratedDetailPageState extends State<GeneratedDetailPage> {
 class AppleReview extends StatelessWidget {
   const AppleReview({super.key});
 
+  Widget _tab(String label, {bool selected = false}) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: selected ? Colors.green : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? Colors.green : Colors.grey[700],
+              fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+              fontSize: 15,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2254,38 +2310,6 @@ class AppleReview extends StatelessWidget {
 class AiIntroPage extends StatelessWidget {
   const AiIntroPage({super.key});
 
-
-  Widget _tab(String label, {bool selected = false}) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: selected ? Colors.green : Colors.transparent,
-              width: 2,
-            ),
-          ),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: selected ? Colors.green : Colors.grey[700],
-              fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-              fontSize: 15,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class AppleAsk extends StatelessWidget {
-  const AppleAsk({super.key});
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2297,7 +2321,6 @@ class AppleAsk extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
-
         title: const Text('AI 자동 작성', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
@@ -2350,29 +2373,15 @@ class AppleAsk extends StatelessWidget {
               ),
             ),
           ],
-
-        title: const Text('[KF365] 유명산지 고당도 사과', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        centerTitle: false,
-      ),
-      body: Column(
-        children: [
-          Container(
-            color: Colors.white,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _tab('상품설명'),
-                _tab('상세정보'),
-                _tab('후기 9,999+'),
-                _tab('문의', selected: true),
-              ],
-            ),
-          ),
-          // 문의 내용 등 추가 가능
-        ],
+        ),
       ),
     );
   }
+}
+
+// AppleAsk의 AppBar title/body 오류도 함께 수정
+class AppleAsk extends StatelessWidget {
+  const AppleAsk({super.key});
 
   Widget _tab(String label, {bool selected = false}) {
     return Expanded(
@@ -2396,6 +2405,40 @@ class AppleAsk extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('[KF365] 유명산지 고당도 사과', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        centerTitle: false,
+      ),
+      body: Column(
+        children: [
+          Container(
+            color: Colors.white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _tab('상품설명'),
+                _tab('상세정보'),
+                _tab('후기 9,999+'),
+                _tab('문의', selected: true),
+              ],
+            ),
+          ),
+          // 문의 내용 등 추가 가능
+        ],
       ),
     );
   }
