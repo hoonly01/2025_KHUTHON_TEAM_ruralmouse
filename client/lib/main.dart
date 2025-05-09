@@ -228,7 +228,7 @@ class IntroScreen extends StatelessWidget {
                       ),
                       onPressed: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const DetailCreatePage()),
+                          MaterialPageRoute(builder: (_) => const SellInputPage()),
                         );
                       },
                       child: Text('판매', style: TextStyle(fontSize: 18, color: Colors.white)),
@@ -1360,6 +1360,117 @@ class _PriceSettingPageState extends State<PriceSettingPage> {
                 },
                 child: const Text('다음', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white)),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// 판매 상품 입력 페이지
+class SellInputPage extends StatefulWidget {
+  const SellInputPage({super.key});
+
+  @override
+  State<SellInputPage> createState() => _SellInputPageState();
+}
+
+class _SellInputPageState extends State<SellInputPage> {
+  final TextEditingController _controller = TextEditingController();
+  final List<String> _products = ['사과', '딸기', '포도', '복숭아', '감자'];
+  String? _selectedProduct;
+
+  void _goToNext(String product) {
+    // 다음 단계로 이동 (DetailCreatePage)
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const DetailCreatePage()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('판매 상품 입력', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            // 대표 상품 버튼들
+            ..._products.map((product) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: SizedBox(
+                width: 120,
+                height: 44,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: _selectedProduct == product ? Colors.green[50] : Colors.white,
+                    side: BorderSide(color: _selectedProduct == product ? Colors.green : Colors.grey.shade400, width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _selectedProduct = product;
+                    });
+                    Future.delayed(const Duration(milliseconds: 120), () => _goToNext(product));
+                  },
+                  child: Text(
+                    product,
+                    style: TextStyle(
+                      color: _selectedProduct == product ? Colors.green : Colors.grey[800],
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            )),
+            const SizedBox(height: 18),
+            const Text('여기에 없다면 직접 입력해 주세요', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    style: const TextStyle(fontSize: 16),
+                    decoration: const InputDecoration(
+                      hintText: '예시) 사과',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  height: 48,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.green, width: 1.5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: () {
+                      if (_controller.text.trim().isNotEmpty) {
+                        _goToNext(_controller.text.trim());
+                      }
+                    },
+                    child: const Text('입력', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
