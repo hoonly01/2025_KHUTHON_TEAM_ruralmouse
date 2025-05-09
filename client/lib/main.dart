@@ -2548,7 +2548,7 @@ void showAiIntroModal(BuildContext context) {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    '사진을 녹음을 등록하면 AI가 자동으로 글을 작성해요.\n빠르고 간편하게 판매를 시작해보세요.',
+                    '사진과 녹음본을 등록하면 AI가 자동으로 글을 작성해요.\n빠르고 간편하게 판매를 시작해보세요.',
                     style: TextStyle(fontSize: 16, color: Colors.black87, height: 1.5),
                   ),
                   const SizedBox(height: 28),
