@@ -3,6 +3,13 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'dart:ui' as ui;
+
+class Farm {
+  final LatLng location;
+  final String name;
+  Farm(this.location, this.name);
+}
 
 void main() {
   runApp(const MyApp());
@@ -274,12 +281,12 @@ class _MapSearchPageState extends State<MapSearchPage> {
     '귤': 9.0,
   };
 
-  // 과일별 농가 마커 예시 좌표
-  final Map<String, List<LatLng>> categoryFarms = {
-    '사과': [LatLng(36.4, 128.4), LatLng(36.0, 128.6)],
-    '복숭아': [LatLng(36.3, 127.2)],
-    '포도': [LatLng(36.1, 128.5)],
-    '귤': [LatLng(33.4, 126.6)],
+  // 2. 농가 마커에 이름 포함
+  final Map<String, List<Farm>> categoryFarms = {
+    '사과': [Farm(LatLng(36.4, 128.4), '경북사과농장'), Farm(LatLng(36.0, 128.6), '청송사과팜')],
+    '복숭아': [Farm(LatLng(36.3, 127.2), '충남복숭아농장')],
+    '포도': [Farm(LatLng(36.1, 128.5), '경북포도농장')],
+    '귤': [Farm(LatLng(33.4, 126.6), '제주귤농장')],
   };
 
   final List<String> categories = [
@@ -292,77 +299,27 @@ class _MapSearchPageState extends State<MapSearchPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text('농가 지도 검색', style: TextStyle(color: Colors.black)),
+        title: const Text('농가 지도 검색', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: Column(
+      backgroundColor: Colors.transparent,
+      body: Stack(
         children: [
-          // 카테고리 버튼 툴바 (배경 완전 흰색)
-          Container(
-            color: Colors.white,
-            child: SizedBox(
-              height: 56,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: categories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, idx) {
-                  final cat = categories[idx];
-                  final isSelected = cat == selectedCategory;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedCategory = cat;
-                      });
-                      // 지도 이동/강조는 기존 4개만
-                      if (categoryCenters.containsKey(cat)) {
-                        _mapController.move(
-                          categoryCenters[cat]!,
-                          categoryZooms[cat]!,
-                        );
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isSelected ? Colors.green : Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.green),
-                      ),
-                      child: Text(
-                        cat,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.green,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          Expanded(
+          // 지도
+          Positioned.fill(
             child: FlutterMap(
               mapController: _mapController,
               options: MapOptions(
-                center: LatLng(36.5, 127.8), // 전국 중심
-                zoom: 6.5, // 전국 줌
-                onMapReady: () {
-                  if (selectedCategory.isNotEmpty) {
-                    _mapController.move(
-                      categoryCenters[selectedCategory]!,
-                      categoryZooms[selectedCategory]!,
-                    );
-                  }
-                },
+                center: selectedCategory.isNotEmpty && categoryCenters[selectedCategory] != null
+                    ? categoryCenters[selectedCategory]!
+                    : LatLng(36.5, 127.8),
+                zoom: selectedCategory.isNotEmpty && categoryZooms[selectedCategory] != null
+                    ? categoryZooms[selectedCategory]!
+                    : 6.5,
               ),
               children: [
                 TileLayer(
-                  urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-                  subdomains: ['a', 'b', 'c', 'd'],
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.example.app',
                 ),
                 if (selectedCategory.isNotEmpty && categoryPolygons[selectedCategory] != null)
@@ -370,7 +327,7 @@ class _MapSearchPageState extends State<MapSearchPage> {
                     polygons: [
                       Polygon(
                         points: categoryPolygons[selectedCategory]!,
-                        color: Colors.green.withOpacity(0.22), // 연한 초록
+                        color: Colors.green.withOpacity(0.22),
                         borderStrokeWidth: 2,
                         borderColor: Colors.green,
                       ),
@@ -380,11 +337,35 @@ class _MapSearchPageState extends State<MapSearchPage> {
                   MarkerLayer(
                     markers: categoryFarms[selectedCategory]!
                         .map(
-                          (pin) => Marker(
-                            width: 40,
+                          (farm) => Marker(
+                            width: 120,
                             height: 40,
-                            point: pin,
-                            child: Icon(Icons.location_on, color: Colors.green, size: 36),
+                            point: farm.location,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.location_on, color: Colors.green, size: 36),
+                                SizedBox(width: 4),
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.85),
+                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.07),
+                                        blurRadius: 4,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    farm.name,
+                                    style: TextStyle(fontSize: 12, color: Colors.green[900], fontWeight: FontWeight.w500),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         )
                         .toList(),
@@ -392,8 +373,104 @@ class _MapSearchPageState extends State<MapSearchPage> {
               ],
             ),
           ),
+          // 지도 위에 오버레이 (사과, 복숭아, 포도)
+          if (['사과', '복숭아', '포도'].contains(selectedCategory) && categoryPolygons[selectedCategory] != null)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: CustomPaint(
+                  painter: _BlurExceptPolygonPainter(categoryPolygons[selectedCategory]!, _mapController),
+                ),
+              ),
+            ),
+          // 카테고리 바 (지도 위에 둥둥)
+          Positioned(
+            top: kToolbarHeight - 50,
+            left: 0,
+            right: 0,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  for (final cat in categories) ...[
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedCategory = cat;
+                        });
+                        if (categoryCenters.containsKey(cat)) {
+                          _mapController.move(
+                            categoryCenters[cat]!,
+                            categoryZooms[cat]!,
+                          );
+                        }
+                      },
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 180),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: selectedCategory == cat ? Colors.green : Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: Colors.green),
+                          boxShadow: selectedCategory == cat
+                              ? [BoxShadow(color: Colors.green.withOpacity(0.10), blurRadius: 8, offset: Offset(0, 2))]
+                              : [],
+                        ),
+                        child: Text(
+                          cat,
+                          style: TextStyle(
+                            color: selectedCategory == cat ? Colors.white : Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
+}
+
+class _BlurExceptPolygonPainter extends CustomPainter {
+  final List<LatLng> polygon;
+  final MapController mapController;
+
+  _BlurExceptPolygonPainter(this.polygon, this.mapController);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.7)
+      ..style = PaintingStyle.fill;
+
+    // 전체 사각형
+    final rectPath = ui.Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    // 폴리곤(경상북도) 영역 (여기만 투명하게)
+    final polyPath = ui.Path();
+    if (polygon.isNotEmpty) {
+      final first = mapController.latLngToScreenPoint(polygon.first);
+      polyPath.moveTo(first.x, first.y);
+      for (final latlng in polygon.skip(1)) {
+        final pt = mapController.latLngToScreenPoint(latlng);
+        polyPath.lineTo(pt.x, pt.y);
+      }
+      polyPath.close();
+    }
+
+    // 전체에서 폴리곤 부분만 빼기
+    final mask = ui.Path.combine(ui.PathOperation.difference, rectPath, polyPath);
+
+    canvas.drawPath(mask, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
