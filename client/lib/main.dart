@@ -3,6 +3,13 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'dart:ui' as ui;
+
+class Farm {
+  final LatLng location;
+  final String name;
+  Farm(this.location, this.name);
+}
 
 void main() {
   runApp(const MyApp());
@@ -237,276 +244,87 @@ class IntroScreen extends StatelessWidget {
   }
 }
 
-class ProductDetailPage extends StatefulWidget {
+class ProductDetailPage extends StatelessWidget {
   const ProductDetailPage({super.key});
-
-  @override
-  State<ProductDetailPage> createState() => _ProductDetailPageState();
-}
-
-class _ProductDetailPageState extends State<ProductDetailPage> {
-  final ScrollController _scrollController = ScrollController();
-  final List<String> _tabs = ['상품설명', '상세정보', '후기 0', '문의'];
-  int _selectedTab = 0;
-
-  final _descKey = GlobalKey();
-  final _detailKey = GlobalKey();
-  final _reviewKey = GlobalKey();
-  final _qnaKey = GlobalKey();
-  final _listViewKey = GlobalKey();
-
-  // 각 섹션의 위치를 저장
-  final Map<int, double> _sectionOffsets = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _calculateSectionOffsets());
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _calculateSectionOffsets() {
-    _sectionOffsets.clear();
-    RenderBox? listBox = _listViewKey.currentContext?.findRenderObject() as RenderBox?;
-    double listTop = listBox?.localToGlobal(Offset.zero).dy ?? 0;
-    RenderBox? box1 = _descKey.currentContext?.findRenderObject() as RenderBox?;
-    RenderBox? box2 = _detailKey.currentContext?.findRenderObject() as RenderBox?;
-    RenderBox? box3 = _reviewKey.currentContext?.findRenderObject() as RenderBox?;
-    RenderBox? box4 = _qnaKey.currentContext?.findRenderObject() as RenderBox?;
-    _sectionOffsets[0] = (box1?.localToGlobal(Offset.zero).dy ?? 0) - listTop + _scrollController.offset;
-    _sectionOffsets[1] = (box2?.localToGlobal(Offset.zero).dy ?? 0) - listTop + _scrollController.offset;
-    double offset1 = box1?.localToGlobal(Offset.zero, ancestor: context.findRenderObject()).dy ?? 0;
-    double offset2 = box2?.localToGlobal(Offset.zero, ancestor: context.findRenderObject()).dy ?? 0;
-    double offset3 = box3?.localToGlobal(Offset.zero, ancestor: context.findRenderObject()).dy ?? 0;
-    double offset4 = box4?.localToGlobal(Offset.zero, ancestor: context.findRenderObject()).dy ?? 0;
-    _sectionOffsets[0] = offset1;
-    _sectionOffsets[1] = offset2;
-    _sectionOffsets[2] = offset3;
-    _sectionOffsets[3] = offset4;
-  }
-
-  void _onScroll() {
-    // 현재 스크롤 위치에 따라 탭 활성화 변경
-    double scrollOffset = _scrollController.offset + 100; // 약간의 버퍼
-    int newTab = 0;
-    for (int i = 0; i < _tabs.length; i++) {
-      if (_sectionOffsets[i] != null && scrollOffset >= _sectionOffsets[i]!) {
-        newTab = i;
-      }
-    }
-    if (newTab != _selectedTab) {
-      setState(() {
-        _selectedTab = newTab;
-      });
-    }
-  }
-
-  void _scrollToSection(int idx) {
-    final offset = _sectionOffsets[idx];
-    if (offset != null) {
-      _scrollController.animateTo(
-        offset - 80, // AppBar, 탭바 높이만큼 보정
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {},
         ),
         title: const Text(
           '[KF365] 유명산지 고당도 사과',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           overflow: TextOverflow.ellipsis,
         ),
-        centerTitle: false,
-      ),
-      body: Column(
-        children: [
-          // 탭바
-          Container(
-            color: Colors.white,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(_tabs.length, (idx) {
-                final selected = _selectedTab == idx;
-                return GestureDetector(
-                  onTap: () => _scrollToSection(idx),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: selected ? Colors.green : Colors.transparent,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      _tabs[idx],
-                      style: TextStyle(
-                        color: selected ? Colors.green : Colors.grey[700],
-                        fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share_outlined),
+            onPressed: () {},
           ),
-          Expanded(
-            child: NotificationListener<ScrollEndNotification>(
-              onNotification: (_) {
-                WidgetsBinding.instance.addPostFrameCallback((_) => _calculateSectionOffsets());
-                return false;
-              },
-              child: ListView(
-                controller: _scrollController,
-                padding: EdgeInsets.zero,
-                children: [
-                  // 상품 이미지
-                  Image.asset(
-                    'assets/images/apple.png',
-                    width: double.infinity,
-                    fit: BoxFit.fitWidth,
-                  ),
-                  // 상품 정보 카드
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text('[KF365] 유명산지 고당도 사과 5kg',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 8),
-                        Text('아삭아삭 달콤한 제철 과일',
-                            style: TextStyle(fontSize: 14, color: Colors.grey)),
-                        SizedBox(height: 8),
-                        Text('원산지: 국산', style: TextStyle(fontSize: 14)),
-                        SizedBox(height: 10),
-                        Text('₩35,000', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
-                      ],
-                    ),
-                  ),
-                  // 상품설명
-                  Container(
-                    key: _descKey,
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      '신선한 사과를 산지에서 바로 배송해드립니다.\n\n달콤함과 아삭함이 살아있는 고품질 사과를 경험해보세요!',
-                      style: TextStyle(fontSize: 15, color: Colors.black87),
-                    ),
-                  ),
-                  // 상세정보
-                  Container(
-                    key: _detailKey,
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      '포장타입: 냉장(종이포장)\n중량/용량: 5kg 내외\n당도: 14.4 Brix 이상\n\n신선식품 특성상 약간의 중량 차이가 있을 수 있습니다.',
-                      style: TextStyle(fontSize: 15, color: Colors.black87),
-                    ),
-                  ),
-                  // 후기
-                  Container(
-                    key: _reviewKey,
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text('아직 후기가 없습니다.', style: TextStyle(fontSize: 15)),
-                  ),
-                  // 문의
-                  Container(
-                    key: _qnaKey,
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text('문의사항이 없습니다.', style: TextStyle(fontSize: 15)),
-                  ),
-                  const SizedBox(height: 80), // 하단 버튼 공간 확보
-                ],
-              ),
-            ),
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined),
+            onPressed: () {},
           ),
         ],
       ),
+      body: ListView(
+        children: [
+          Image.asset(
+            'assets/images/apple.png',
+            height: 300,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              '[KF365] 유명산지 고당도사과 1.5kg (5~6입)',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              '아삭아삭 달콤한 제철 과일',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Text('원산지: 국산', style: TextStyle(fontSize: 14)),
+          ),
+          const Divider(height: 32),
+          // 상품정보 등 상세 설명은 기존 심플 버전으로 유지
+        ],
+      ),
       bottomNavigationBar: Container(
-        color: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.favorite_border, color: Colors.black54),
-                onPressed: () {},
-              ),
+            IconButton(
+              icon: const Icon(Icons.favorite_border),
+              onPressed: () {},
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: SizedBox(
-                height: 48,
+                height: 50,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: Colors.deepPurple,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => OrderPage(productName: '[KF365] 유명산지 고당도 사과 5kg'),
-                      ),
-                    );
+                    // 구매하기 로직
                   },
-                  child: const Text("구매하기", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white)),
+                  child: const Text("구매하기", style: TextStyle(fontSize: 16)),
                 ),
               ),
             ),
@@ -525,25 +343,49 @@ class MapSearchPage extends StatefulWidget {
 }
 
 class _MapSearchPageState extends State<MapSearchPage> {
-  String search = '';
-  bool showAppleRegion = false;
-  bool showFarmPins = false;
+  String selectedCategory = '';
+  final MapController _mapController = MapController();
 
-  // 경상북도(사과 유명) 폴리곤 예시 좌표 (실제와 다름)
-  final List<LatLng> gyeongbukPolygon = [
-    LatLng(36.5, 128.0),
-    LatLng(36.7, 129.0),
-    LatLng(36.2, 129.2),
-    LatLng(35.7, 128.8),
-    LatLng(35.8, 128.0),
-    LatLng(36.1, 127.8),
-    LatLng(36.5, 128.0),
-  ];
+  // 카테고리별 지역 폴리곤 (예시, 실제 좌표는 필요시 수정)
+  final Map<String, List<LatLng>> categoryPolygons = {
+    '사과': [
+      LatLng(36.5, 128.0), LatLng(36.7, 129.0), LatLng(36.2, 129.2), LatLng(35.7, 128.8), LatLng(35.8, 128.0), LatLng(36.1, 127.8), LatLng(36.5, 128.0),
+    ], // 경상북도
+    '복숭아': [
+      LatLng(36.5, 127.0), LatLng(36.7, 127.5), LatLng(36.2, 127.7), LatLng(35.7, 127.3), LatLng(35.8, 127.0), LatLng(36.1, 126.8), LatLng(36.5, 127.0),
+    ], // 충남(예시)
+    '포도': [
+      LatLng(36.2, 128.0), LatLng(36.4, 128.7), LatLng(35.9, 128.9), LatLng(35.5, 128.5), LatLng(35.7, 128.0), LatLng(36.0, 127.7), LatLng(36.2, 128.0),
+    ], // 경북(예시)
+    '귤': [
+      LatLng(33.3, 126.2), LatLng(33.5, 126.7), LatLng(33.2, 126.9), LatLng(33.1, 126.5), LatLng(33.3, 126.2),
+    ], // 제주(예시)
+  };
 
-  // 농가 마커 예시 좌표
-  final List<LatLng> farmPins = [
-    LatLng(36.4, 128.4),
-    LatLng(36.0, 128.6),
+  // 카테고리별 중심 좌표와 줌
+  final Map<String, LatLng> categoryCenters = {
+    '사과': LatLng(36.5, 128.5),
+    '복숭아': LatLng(36.3, 127.2),
+    '포도': LatLng(36.1, 128.5),
+    '귤': LatLng(33.4, 126.5),
+  };
+  final Map<String, double> categoryZooms = {
+    '사과': 8.0,
+    '복숭아': 8.0,
+    '포도': 8.0,
+    '귤': 9.0,
+  };
+
+  // 2. 농가 마커에 이름 포함
+  final Map<String, List<Farm>> categoryFarms = {
+    '사과': [Farm(LatLng(36.4, 128.4), '경북사과농장'), Farm(LatLng(36.0, 128.6), '청송사과팜')],
+    '복숭아': [Farm(LatLng(36.3, 127.2), '충남복숭아농장')],
+    '포도': [Farm(LatLng(36.1, 128.5), '경북포도농장')],
+    '귤': [Farm(LatLng(33.4, 126.6), '제주귤농장')],
+  };
+
+  final List<String> categories = [
+    '사과', '복숭아', '포도', '귤', '배', '자두', '감', '딸기', '참외', '수박', '멜론', '블루베리', '오렌지', '레몬', '체리'
   ];
 
   @override
@@ -552,110 +394,180 @@ class _MapSearchPageState extends State<MapSearchPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: TextField(
-          decoration: InputDecoration(
-            hintText: '상품을 검색하세요',
-            border: InputBorder.none,
-            prefixIcon: Icon(Icons.search),
-          ),
-          onChanged: (value) {
-            setState(() {
-              search = value;
-              showAppleRegion = value.contains('사과');
-              showFarmPins = false;
-            });
-          },
-          onSubmitted: (value) {
-            if (value.contains('사과')) {
-              setState(() {
-                showAppleRegion = true;
-                showFarmPins = false;
-              });
-            }
-          },
-        ),
+        title: const Text('농가 지도 검색', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: FlutterMap(
-        options: MapOptions(
-          center: LatLng(36.5, 128.5),
-          zoom: 7.2,
-          onTap: (tapPosition, point) {
-            if (showAppleRegion && _pointInPolygon(point, gyeongbukPolygon)) {
-              setState(() {
-                showFarmPins = true;
-              });
-            }
-          },
-        ),
+      backgroundColor: Colors.transparent,
+      body: Stack(
         children: [
-          TileLayer(
-            urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-            subdomains: ['a', 'b', 'c', 'd'],
-            userAgentPackageName: 'com.example.app',
-          ),
-          if (showAppleRegion)
-            PolygonLayer(
-              polygons: [
-                Polygon(
-                  points: gyeongbukPolygon,
-                  color: Colors.red.withOpacity(0.4),
-                  borderStrokeWidth: 2,
-                  borderColor: Colors.red,
+          // 지도
+          Positioned.fill(
+            child: FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                center: selectedCategory.isNotEmpty && categoryCenters[selectedCategory] != null
+                    ? categoryCenters[selectedCategory]!
+                    : LatLng(36.5, 127.8),
+                zoom: selectedCategory.isNotEmpty && categoryZooms[selectedCategory] != null
+                    ? categoryZooms[selectedCategory]!
+                    : 6.5,
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.example.app',
                 ),
+                if (selectedCategory.isNotEmpty && categoryPolygons[selectedCategory] != null)
+                  PolygonLayer(
+                    polygons: [
+                      Polygon(
+                        points: categoryPolygons[selectedCategory]!,
+                        color: Colors.green.withOpacity(0.22),
+                        borderStrokeWidth: 2,
+                        borderColor: Colors.green,
+                      ),
+                    ],
+                  ),
+                if (selectedCategory.isNotEmpty && categoryFarms[selectedCategory] != null)
+                  MarkerLayer(
+                    markers: categoryFarms[selectedCategory]!
+                        .map(
+                          (farm) => Marker(
+                            width: 120,
+                            height: 40,
+                            point: farm.location,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.location_on, color: Colors.green, size: 36),
+                                SizedBox(width: 4),
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.85),
+                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.07),
+                                        blurRadius: 4,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    farm.name,
+                                    style: TextStyle(fontSize: 12, color: Colors.green[900], fontWeight: FontWeight.w500),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
               ],
             ),
-          if (showFarmPins)
-            MarkerLayer(
-              markers: farmPins
-                  .map(
-                    (pin) => Marker(
-                      width: 40,
-                      height: 40,
-                      point: pin,
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const ProductDetailPage()),
+          ),
+          // 지도 위에 오버레이 (사과, 복숭아, 포도)
+          if (['사과', '복숭아', '포도'].contains(selectedCategory) && categoryPolygons[selectedCategory] != null)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: CustomPaint(
+                  painter: _BlurExceptPolygonPainter(categoryPolygons[selectedCategory]!, _mapController),
+                ),
+              ),
+            ),
+          // 카테고리 바 (지도 위에 둥둥)
+          Positioned(
+            top: kToolbarHeight - 50,
+            left: 0,
+            right: 0,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  for (final cat in categories) ...[
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedCategory = cat;
+                        });
+                        if (categoryCenters.containsKey(cat)) {
+                          _mapController.move(
+                            categoryCenters[cat]!,
+                            categoryZooms[cat]!,
                           );
-                        },
-                        child: Icon(Icons.location_on, color: Colors.green, size: 36),
+                        }
+                      },
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 180),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: selectedCategory == cat ? Colors.green : Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: Colors.green),
+                          boxShadow: selectedCategory == cat
+                              ? [BoxShadow(color: Colors.green.withOpacity(0.10), blurRadius: 8, offset: Offset(0, 2))]
+                              : [],
+                        ),
+                        child: Text(
+                          cat,
+                          style: TextStyle(
+                            color: selectedCategory == cat ? Colors.white : Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                       ),
                     ),
-                  )
-                  .toList(),
+                  ]
+                ],
+              ),
             ),
+          ),
         ],
       ),
     );
   }
+}
 
-  // 폴리곤 내부 클릭 판정 (Ray-casting 알고리즘)
-  bool _pointInPolygon(LatLng point, List<LatLng> polygon) {
-    int intersectCount = 0;
-    for (int j = 0; j < polygon.length - 1; j++) {
-      if (_rayCastIntersect(point, polygon[j], polygon[j + 1])) {
-        intersectCount++;
+class _BlurExceptPolygonPainter extends CustomPainter {
+  final List<LatLng> polygon;
+  final MapController mapController;
+
+  _BlurExceptPolygonPainter(this.polygon, this.mapController);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.7)
+      ..style = PaintingStyle.fill;
+
+    // 전체 사각형
+    final rectPath = ui.Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    // 폴리곤(경상북도) 영역 (여기만 투명하게)
+    final polyPath = ui.Path();
+    if (polygon.isNotEmpty) {
+      final first = mapController.latLngToScreenPoint(polygon.first);
+      polyPath.moveTo(first.x, first.y);
+      for (final latlng in polygon.skip(1)) {
+        final pt = mapController.latLngToScreenPoint(latlng);
+        polyPath.lineTo(pt.x, pt.y);
       }
+      polyPath.close();
     }
-    return (intersectCount % 2) == 1;
+
+    // 전체에서 폴리곤 부분만 빼기
+    final mask = ui.Path.combine(ui.PathOperation.difference, rectPath, polyPath);
+
+    canvas.drawPath(mask, paint);
   }
 
-  bool _rayCastIntersect(LatLng point, LatLng vertA, LatLng vertB) {
-    double aY = vertA.latitude;
-    double bY = vertB.latitude;
-    double aX = vertA.longitude;
-    double bX = vertB.longitude;
-    double pY = point.latitude;
-    double pX = point.longitude;
-
-    if ((aY > pY && bY > pY) || (aY < pY && bY < pY) || (aX < pX && bX < pX)) {
-      return false;
-    }
-    double m = (bY - aY) / (bX - aX);
-    double bee = -aX * m + aY;
-    double x = (pY - bee) / m;
-    return x > pX;
-  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 // 주문/결제 화면
