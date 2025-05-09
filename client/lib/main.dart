@@ -2050,10 +2050,10 @@ class VoicePriceSetAllInOnePage extends StatefulWidget {
 }
 
 class _VoicePriceSetAllInOnePageState extends State<VoicePriceSetAllInOnePage> {
-  String size = '대과';
-  String unit = '5kg';
-  String packaging = '박스포장';
-  String discount = '설정안함';
+  String size = '';
+  String unit = '';
+  String packaging = '';
+  String discount = '';
   final TextEditingController priceController = TextEditingController();
 
   Widget _buildSelector(String title, List<String> options, String selected, ValueChanged<String> onSelect) {
