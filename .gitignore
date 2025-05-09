@@ -1,35 +1,36 @@
-# Flutter build
+# Flutter build outputs
 build/
+
+# Symbolic links created by flutter packages get
 .dart_tool/
-.packages
-.pub-cache/
-.melos_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+.packages
 
-# iOS
-ios/Flutter/Flutter.framework
-ios/Flutter/Flutter.podspec
-ios/.symlinks/
+# Dependency directories
 ios/Pods/
-ios/Runner.xcworkspace/
-ios/Flutter/Generated.xcconfig
-Podfile.lock
-
-# Android
 android/.gradle/
-android/.idea/
-android/local.properties
-*.iml
 
-# IDE
+# IDE directories
 .idea/
 .vscode/
 
-# OS
-.DS_Store
+# Local properties
+android/local.properties
 
-# 기타
+# Xcode
+ios/Runner.xcworkspace/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/.symlinks/
+
+# Lock and log files
 *.lock
 *.log
+
+# OS generated files
+.DS_Store
+
+# 환경 변수 파일
 .env
