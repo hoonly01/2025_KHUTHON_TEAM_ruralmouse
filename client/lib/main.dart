@@ -267,6 +267,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   // 각 섹션의 위치를 저장
   final Map<int, double> _sectionOffsets = {};
 
+  bool _isFavorite = false;
+
   @override
   void initState() {
     super.initState();
@@ -313,13 +315,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   void _scrollToSection(int idx) {
     if (idx < 2) {
-      final offset = _sectionOffsets[idx];
-      if (offset != null) {
-        _scrollController.animateTo(
-          offset - 80, // AppBar, 탭바 높이만큼 보정
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeInOut,
-        );
+    final offset = _sectionOffsets[idx];
+    if (offset != null) {
+      _scrollController.animateTo(
+        offset - 80, // AppBar, 탭바 높이만큼 보정
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+      );
       }
       setState(() => _selectedTab = idx);
     } else {
@@ -385,83 +387,83 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 if (_selectedTab == 0 || _selectedTab == 1) {
                   // 상품설명/상세정보는 기존처럼 스크롤 연동
                   return NotificationListener<ScrollEndNotification>(
-                    onNotification: (_) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) => _calculateSectionOffsets());
-                      return false;
-                    },
-                    child: ListView(
+              onNotification: (_) {
+                WidgetsBinding.instance.addPostFrameCallback((_) => _calculateSectionOffsets());
+                return false;
+              },
+              child: ListView(
                       key: _listViewKey,
-                      controller: _scrollController,
-                      padding: EdgeInsets.zero,
-                      children: [
-                        // 상품 이미지
-                        Image.asset(
-                          'assets/images/apple.png',
-                          width: double.infinity,
-                          fit: BoxFit.fitWidth,
+                controller: _scrollController,
+                padding: EdgeInsets.zero,
+                children: [
+                  // 상품 이미지
+                  Image.asset(
+                    'assets/images/apple.png',
+                    width: double.infinity,
+                    fit: BoxFit.fitWidth,
+                  ),
+                  // 상품 정보 카드
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-                        // 상품 정보 카드
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.03),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text('유명산지 고당도 사과 5kg',
-                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                              SizedBox(height: 8),
-                              Text('아삭아삭 달콤한 제철 과일',
-                                  style: TextStyle(fontSize: 14, color: Colors.grey)),
-                              SizedBox(height: 8),
-                              Text('원산지: 국산', style: TextStyle(fontSize: 14)),
-                              SizedBox(height: 10),
-                              Text('₩35,000', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
-                            ],
-                          ),
-                        ),
-                        // 상품설명
-                        Container(
-                          key: _descKey,
-                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('유명산지 고당도 사과 5kg',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        SizedBox(height: 8),
+                        Text('아삭아삭 달콤한 제철 과일',
+                            style: TextStyle(fontSize: 14, color: Colors.grey)),
+                        SizedBox(height: 8),
+                        Text('원산지: 국산', style: TextStyle(fontSize: 14)),
+                        SizedBox(height: 10),
+                        Text('₩35,000', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+                      ],
+                    ),
+                  ),
+                  // 상품설명
+                  Container(
+                    key: _descKey,
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                           child: const ProductOptionTable(),
-                        ),
-                        // 상세정보
-                        Container(
-                          key: _detailKey,
-                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  ),
+                  // 상세정보
+                  Container(
+                    key: _detailKey,
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                           padding: const EdgeInsets.all(0),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12),
                             child: Image.asset(
                               'assets/images/detail_sample.png',
                               fit: BoxFit.fitWidth,
                               width: double.infinity,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 80), // 하단 버튼 공간 확보
-                      ],
-                    ),
+                  ),
+                  const SizedBox(height: 80), // 하단 버튼 공간 확보
+                ],
+              ),
                   );
                 } else if (_selectedTab == 2) {
                   // 후기
@@ -496,8 +498,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: const Icon(Icons.favorite_border, color: Colors.black54),
-                onPressed: () {},
+                icon: Icon(
+                  _isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: _isFavorite ? Colors.red : Colors.black54,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isFavorite = !_isFavorite;
+                  });
+                },
               ),
             ),
             const SizedBox(width: 12),
@@ -1025,7 +1034,18 @@ class _OrderPageState extends State<OrderPage> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            onPressed: () {},
+                            onPressed: () async {
+                              final result = await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const AddressSearchDemoPage(),
+                                ),
+                              );
+                              if (result != null && result is String) {
+                                setState(() {
+                                  addressController.text = result;
+                                });
+                              }
+                            },
                             child: const Text('검색'),
                           ),
                         ),
@@ -1924,8 +1944,8 @@ class _AutoGeneratePageState extends State<AutoGeneratePage> {
                             separatorBuilder: (_, __) => const SizedBox(width: 10),
                             itemBuilder: (context, idx) => Stack(
                               children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
                                   child: Image.file(_selectedImages[idx], width: 120, height: 120, fit: BoxFit.cover),
                                 ),
                                 Positioned(
@@ -2140,7 +2160,7 @@ class _VoicePriceSetAllInOnePageState extends State<VoicePriceSetAllInOnePage> {
                 children: [
                   Expanded(
                     child: TextField(
-                      controller: priceController,
+          controller: priceController,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         hintText: '가격을 입력하세요',
@@ -2198,7 +2218,7 @@ class _GeneratedDetailPageState extends State<GeneratedDetailPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
-        children: [
+            children: [
           SingleChildScrollView(
             child: Image.asset(
               'assets/images/detail_sample.png',
@@ -2221,8 +2241,8 @@ class _GeneratedDetailPageState extends State<GeneratedDetailPage> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.grey.shade200, width: 1.5),
                   ),
-                  child: Row(
-                    children: [
+                child: Row(
+                  children: [
                       const Icon(Icons.check_circle, color: Colors.green, size: 28),
                       const SizedBox(width: 12),
                       const Expanded(
@@ -2258,7 +2278,7 @@ class AppleReview extends StatelessWidget {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
+                      decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
               color: selected ? Colors.green : Colors.transparent,
@@ -2295,9 +2315,9 @@ class AppleReview extends StatelessWidget {
         centerTitle: false,
       ),
       body: Column(
-        children: [
+                        children: [
           Container(
-            color: Colors.white,
+                              color: Colors.white,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -2324,9 +2344,9 @@ class AppleReview extends StatelessWidget {
                           child: i == 3 ? const Center(child: Text('+ 더보기')) : null,
                         ),
                       )),
-                    ],
-                  ),
-                ),
+                        ],
+                      ),
+                    ),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
@@ -2334,9 +2354,9 @@ class AppleReview extends StatelessWidget {
                     children: [
                       Text('총 117,315 개', style: TextStyle(fontWeight: FontWeight.bold)),
                       Text('추천순', style: TextStyle(color: Colors.grey)),
-                    ],
-                  ),
+                  ],
                 ),
+              ),
                 // 후기 리스트 등 추가 가능
               ],
             ),
@@ -2366,7 +2386,7 @@ class AiIntroPage extends StatelessWidget {
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -2394,14 +2414,14 @@ class AiIntroPage extends StatelessWidget {
             ),
             const Spacer(),
             SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  elevation: 2,
-                ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      elevation: 2,
+                    ),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const AutoGeneratePage()),
@@ -2410,10 +2430,10 @@ class AiIntroPage extends StatelessWidget {
                 child: const Text(
                   '확인',
                   style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
         ),
       ),
     );
@@ -2507,21 +2527,21 @@ void showAiIntroModal(BuildContext context) {
             child: Container(
               width: mq.size.width * 0.85,
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
-              decoration: BoxDecoration(
-                color: Colors.white,
+      decoration: BoxDecoration(
+        color: Colors.white,
                 borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.10),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.10),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+        children: [
                   const Text(
                     '✨AI가 도와줘요!',
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
@@ -2538,7 +2558,7 @@ void showAiIntroModal(BuildContext context) {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         elevation: 2,
                       ),
                       onPressed: () {
@@ -2552,9 +2572,9 @@ void showAiIntroModal(BuildContext context) {
                         style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2),
                       ),
                     ),
-                  ),
-                ],
-              ),
+          ),
+        ],
+      ),
             ),
           ),
         ],
@@ -2670,20 +2690,20 @@ class _ProductPreviewPageState extends State<ProductPreviewPage> {
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
+      decoration: BoxDecoration(
+        color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
+        boxShadow: [
+          BoxShadow(
                               color: Colors.black.withOpacity(0.03),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
+          ),
+        ],
+      ),
+      child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+        children: [
                             Text('유명산지 고당도 사과 ${widget.unit}',
                                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
@@ -2790,6 +2810,141 @@ class _ProductPreviewPageState extends State<ProductPreviewPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// 주소 검색 데모 페이지
+class AddressSearchDemoPage extends StatefulWidget {
+  const AddressSearchDemoPage({super.key});
+
+  @override
+  State<AddressSearchDemoPage> createState() => _AddressSearchDemoPageState();
+}
+
+class _AddressSearchDemoPageState extends State<AddressSearchDemoPage> {
+  final TextEditingController _controller = TextEditingController();
+  String _searchResult = '';
+  bool _searched = false;
+
+  void _onSearch() {
+    setState(() {
+      _searched = true;
+      if (_controller.text.trim() == '경희대 국제캠' || _controller.text.trim() == '경희대학교 국제캠퍼스') {
+        _searchResult = 'found';
+      } else {
+        _searchResult = 'none';
+      }
+    });
+  }
+
+  void _selectAddress(String address) {
+    Navigator.of(context).pop(address);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('주소록·배송지 관리', style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      hintText: '입력',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                    ),
+                    onSubmitted: (_) => _onSearch(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[300],
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: _onSearch,
+                    child: const Icon(Icons.search, color: Colors.black),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_searched && _searchResult == 'found') ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                children: const [
+                  Text('1건', style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(width: 16),
+                  Text('시/도', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                  SizedBox(width: 8),
+                  Text('시/군/구', style: TextStyle(color: Colors.grey)),
+                ],
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              child: Column(
+                children: [
+                  GestureDetector(
+                    onTap: () => _selectAddress('경기도 용인시 기흥구 덕영대로 1732'),
+                    child: Container(
+                      color: Colors.grey[100],
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      child: Row(
+                        children: const [
+                          Text('도로명', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                          SizedBox(width: 12),
+                          Expanded(child: Text('경기도 용인시 기흥구 덕영대로 1732')),
+                          SizedBox(width: 8),
+                          Text('[17104]', style: TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _selectAddress('경기도 용인시 기흥구 서천동 1 경희대학교 국제캠퍼스'),
+                    child: Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      child: Row(
+                        children: const [
+                          Text('지번', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                          SizedBox(width: 12),
+                          Expanded(child: Text('경기도 용인시 기흥구 서천동 1 경희대학교 국제캠퍼스')),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (_searched && _searchResult == 'none') ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
+              child: Text('검색 결과 없음', style: TextStyle(color: Colors.grey, fontSize: 16)),
+            ),
+          ],
+        ],
       ),
     );
   }
