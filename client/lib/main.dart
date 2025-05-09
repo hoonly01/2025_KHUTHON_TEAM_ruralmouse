@@ -282,31 +282,26 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   void _calculateSectionOffsets() {
     _sectionOffsets.clear();
-    RenderBox? listBox = _listViewKey.currentContext?.findRenderObject() as RenderBox?;
-    double listTop = listBox?.localToGlobal(Offset.zero).dy ?? 0;
     RenderBox? box1 = _descKey.currentContext?.findRenderObject() as RenderBox?;
     RenderBox? box2 = _detailKey.currentContext?.findRenderObject() as RenderBox?;
     RenderBox? box3 = _reviewKey.currentContext?.findRenderObject() as RenderBox?;
     RenderBox? box4 = _qnaKey.currentContext?.findRenderObject() as RenderBox?;
-    _sectionOffsets[0] = (box1?.localToGlobal(Offset.zero).dy ?? 0) - listTop + _scrollController.offset;
-    _sectionOffsets[1] = (box2?.localToGlobal(Offset.zero).dy ?? 0) - listTop + _scrollController.offset;
-    double offset1 = box1?.localToGlobal(Offset.zero, ancestor: context.findRenderObject()).dy ?? 0;
-    double offset2 = box2?.localToGlobal(Offset.zero, ancestor: context.findRenderObject()).dy ?? 0;
-    double offset3 = box3?.localToGlobal(Offset.zero, ancestor: context.findRenderObject()).dy ?? 0;
-    double offset4 = box4?.localToGlobal(Offset.zero, ancestor: context.findRenderObject()).dy ?? 0;
-    _sectionOffsets[0] = offset1;
-    _sectionOffsets[1] = offset2;
-    _sectionOffsets[2] = offset3;
-    _sectionOffsets[3] = offset4;
+    _sectionOffsets[0] = box1?.localToGlobal(Offset.zero)?.dy ?? 0 + _scrollController.offset;
+    _sectionOffsets[1] = box2?.localToGlobal(Offset.zero)?.dy ?? 0 + _scrollController.offset;
+    _sectionOffsets[2] = box3?.localToGlobal(Offset.zero)?.dy ?? 0 + _scrollController.offset;
+    _sectionOffsets[3] = box4?.localToGlobal(Offset.zero)?.dy ?? 0 + _scrollController.offset;
   }
 
   void _onScroll() {
-    // 현재 스크롤 위치에 따라 탭 활성화 변경
-    double scrollOffset = _scrollController.offset + 100; // 약간의 버퍼
+    if (_selectedTab >= 2) return;
+    double scrollOffset = 0;
     int newTab = 0;
-    for (int i = 0; i < _tabs.length; i++) {
-      if (_sectionOffsets[i] != null && scrollOffset >= _sectionOffsets[i]!) {
+    for (int i = 0; i < 2; i++) {
+      double? start = _sectionOffsets[i];
+      double? end = (i + 1 < 2) ? _sectionOffsets[i + 1] : double.infinity;
+      if (start != null && end != null && scrollOffset >= start && scrollOffset < end) {
         newTab = i;
+        break;
       }
     }
     if (newTab != _selectedTab) {
@@ -317,13 +312,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   void _scrollToSection(int idx) {
-    final offset = _sectionOffsets[idx];
-    if (offset != null) {
-      _scrollController.animateTo(
-        offset - 80, // AppBar, 탭바 높이만큼 보정
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOut,
-      );
+    if (idx < 2) {
+      final offset = _sectionOffsets[idx];
+      if (offset != null) {
+        _scrollController.animateTo(
+          offset - 80, // AppBar, 탭바 높이만큼 보정
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeInOut,
+        );
+      }
+      setState(() => _selectedTab = idx);
+    } else {
+      setState(() => _selectedTab = idx);
     }
   }
 
@@ -380,104 +380,107 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ),
           ),
           Expanded(
-            child: NotificationListener<ScrollEndNotification>(
-              onNotification: (_) {
-                WidgetsBinding.instance.addPostFrameCallback((_) => _calculateSectionOffsets());
-                return false;
-              },
-              child: ListView(
-                controller: _scrollController,
-                padding: EdgeInsets.zero,
-                children: [
-                  // 상품 이미지
-                  Image.asset(
-                    'assets/images/apple.png',
-                    width: double.infinity,
-                    fit: BoxFit.fitWidth,
-                  ),
-                  // 상품 정보 카드
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+            child: Builder(
+              builder: (context) {
+                if (_selectedTab == 0 || _selectedTab == 1) {
+                  // 상품설명/상세정보는 기존처럼 스크롤 연동
+                  return NotificationListener<ScrollEndNotification>(
+                    onNotification: (_) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) => _calculateSectionOffsets());
+                      return false;
+                    },
+                    child: ListView(
+                      key: _listViewKey,
+                      controller: _scrollController,
+                      padding: EdgeInsets.zero,
+                      children: [
+                        // 상품 이미지
+                        Image.asset(
+                          'assets/images/apple.png',
+                          width: double.infinity,
+                          fit: BoxFit.fitWidth,
                         ),
+                        // 상품 정보 카드
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text('유명산지 고당도 사과 5kg',
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              SizedBox(height: 8),
+                              Text('아삭아삭 달콤한 제철 과일',
+                                  style: TextStyle(fontSize: 14, color: Colors.grey)),
+                              SizedBox(height: 8),
+                              Text('원산지: 국산', style: TextStyle(fontSize: 14)),
+                              SizedBox(height: 10),
+                              Text('₩35,000', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+                            ],
+                          ),
+                        ),
+                        // 상품설명
+                        Container(
+                          key: _descKey,
+                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const ProductOptionTable(),
+                        ),
+                        // 상세정보
+                        Container(
+                          key: _detailKey,
+                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          padding: const EdgeInsets.all(0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.asset(
+                              'assets/images/detail_sample.png',
+                              fit: BoxFit.fitWidth,
+                              width: double.infinity,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 80), // 하단 버튼 공간 확보
                       ],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text('유명산지 고당도 사과 5kg',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 8),
-                        Text('아삭아삭 달콤한 제철 과일',
-                            style: TextStyle(fontSize: 14, color: Colors.grey)),
-                        SizedBox(height: 8),
-                        Text('원산지: 국산', style: TextStyle(fontSize: 14)),
-                        SizedBox(height: 10),
-                        Text('₩35,000', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
-                      ],
-                    ),
-                  ),
-                  // 상품설명
-                  Container(
-                    key: _descKey,
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      '신선한 사과를 산지에서 바로 배송해드립니다.\n\n달콤함과 아삭함이 살아있는 고품질 사과를 경험해보세요!',
-                      style: TextStyle(fontSize: 15, color: Colors.black87),
-                    ),
-                  ),
-                  // 상세정보
-                  Container(
-                    key: _detailKey,
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      '포장타입: 냉장(종이포장)\n중량/용량: 5kg 내외\n당도: 14.4 Brix 이상\n\n신선식품 특성상 약간의 중량 차이가 있을 수 있습니다.',
-                      style: TextStyle(fontSize: 15, color: Colors.black87),
-                    ),
-                  ),
+                  );
+                } else if (_selectedTab == 2) {
                   // 후기
-                  Container(
-                    key: _reviewKey,
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: Text('등록된 후기가 없습니다.', style: TextStyle(fontSize: 16, color: Colors.grey)),
                     ),
-                    child: const Text('아직 후기가 없습니다.', style: TextStyle(fontSize: 15)),
-                  ),
+                  );
+                } else {
                   // 문의
-                  Container(
-                    key: _qnaKey,
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: Text('등록된 문의가 없습니다.', style: TextStyle(fontSize: 16, color: Colors.grey)),
                     ),
-                    child: const Text('문의사항이 없습니다.', style: TextStyle(fontSize: 15)),
-                  ),
-                  const SizedBox(height: 80), // 하단 버튼 공간 확보
-                ],
-              ),
+                  );
+                }
+              },
             ),
           ),
         ],
@@ -523,6 +526,106 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         ),
       ),
     );
+  }
+}
+
+// 쿠팡 스타일 옵션/가격 표 위젯
+class ProductOptionTable extends StatefulWidget {
+  const ProductOptionTable({super.key});
+
+  @override
+  State<ProductOptionTable> createState() => _ProductOptionTableState();
+}
+
+class _ProductOptionTableState extends State<ProductOptionTable> {
+  int selectedCount = 1;
+  final List<int> counts = [1, 2, 3];
+  final List<int> prices = [35000, 69840, 103700];
+  final List<String?> savings = [null, "2봉 사면 160원 절약", "3봉 사면 1,300원 절약"];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.all(0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Text("중량 × 수량", style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _tab("1kg", false),
+              _tab("3kg(중과)", false),
+              _tab("5kg(대과)", true),
+            ],
+          ),
+          const Divider(height: 24),
+          ...List.generate(counts.length, (i) => ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+            leading: Radio<int>(
+              value: counts[i],
+              groupValue: selectedCount,
+              onChanged: (v) => setState(() => selectedCount = v!),
+              activeColor: Colors.green,
+            ),
+            title: Text("${counts[i]}봉", style: const TextStyle(fontWeight: FontWeight.bold)),
+            trailing: Text(_formatPrice(prices[i]),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            subtitle: savings[i] != null ? Text(savings[i]!, style: const TextStyle(color: Colors.green, fontSize: 13)) : null,
+          )),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12, bottom: 8),
+              child: Text("모든 옵션 보기 >", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tab(String label, bool selected) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: selected ? Colors.green : Colors.grey.shade300,
+              width: 2,
+            ),
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+              color: selected ? Colors.green[900] : Colors.black,
+              fontSize: 15,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatPrice(int price) {
+    return price.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]},',
+    ) + '원';
   }
 }
 
@@ -958,23 +1061,23 @@ class _OrderPageState extends State<OrderPage> {
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.black,
                           elevation: 0,
-                          side: const BorderSide(color: Colors.green, width: 1),
+                          side: const BorderSide(color: Colors.green, width: 1.5),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          minimumSize: const Size(0, 36),
+                          minimumSize: const Size(0, 54),
                           padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                         ),
                         onPressed: () {},
                         child: const Text(
                           '디지털 온누리 상품권 사용',
-                          style: TextStyle(fontSize: 12),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
                           softWrap: false,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 14),
                     Row(
                       children: [
                         Expanded(
@@ -982,64 +1085,64 @@ class _OrderPageState extends State<OrderPage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: Colors.black,
-                              side: const BorderSide(color: Colors.grey),
+                              side: const BorderSide(color: Colors.grey, width: 1.2),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              minimumSize: const Size(0, 36),
+                              minimumSize: const Size(0, 54),
                               padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                             ),
                             onPressed: () {},
                             child: const Text(
                               '신용카드',
-                              style: TextStyle(fontSize: 12),
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                               overflow: TextOverflow.ellipsis,
                               softWrap: false,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: Colors.black,
-                              side: const BorderSide(color: Colors.grey),
+                              side: const BorderSide(color: Colors.grey, width: 1.2),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              minimumSize: const Size(0, 36),
+                              minimumSize: const Size(0, 54),
                               padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                             ),
                             onPressed: () {},
                             child: const Text(
                               '무통장 입금',
-                              style: TextStyle(fontSize: 12),
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                               overflow: TextOverflow.ellipsis,
                               softWrap: false,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: Colors.black,
-                              side: const BorderSide(color: Colors.grey),
+                              side: const BorderSide(color: Colors.grey, width: 1.2),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              minimumSize: const Size(0, 36),
+                              minimumSize: const Size(0, 54),
                               padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                             ),
                             onPressed: () {},
                             child: const Text(
                               '휴대폰 결제',
-                              style: TextStyle(fontSize: 12),
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                               overflow: TextOverflow.ellipsis,
                               softWrap: false,
                             ),
@@ -1101,7 +1204,13 @@ class _OrderPageState extends State<OrderPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const GeneratedDetailPage(),
+                      ),
+                    );
+                  },
                   child: const Text('결제하기', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ),
@@ -1458,7 +1567,9 @@ class _PriceSettingPageState extends State<PriceSettingPage> {
                   ),
                 ),
                 onPressed: () {
-                  // 가격 저장 및 다음 단계로 이동 로직
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const GeneratedDetailPage()),
+                  );
                 },
                 child: const Text('다음', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white)),
               ),
@@ -1860,7 +1971,7 @@ class _AutoGeneratePageState extends State<AutoGeneratePage> {
             ),
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const VoicePriceSetPage()),
+                MaterialPageRoute(builder: (_) => const VoicePriceSetAllInOnePage()),
               );
             },
             child: const Text('작성 완료', style: TextStyle(fontSize: 16, color: Colors.white)),
@@ -1876,144 +1987,112 @@ class _AutoGeneratePageState extends State<AutoGeneratePage> {
   }
 }
 
-class VoicePriceSetPage extends StatefulWidget {
-  const VoicePriceSetPage({super.key});
+// 한 페이지에서 모든 항목을 입력하는 가격 설정 페이지
+class VoicePriceSetAllInOnePage extends StatefulWidget {
+  const VoicePriceSetAllInOnePage({super.key});
 
   @override
-  State<VoicePriceSetPage> createState() => _VoicePriceSetPageState();
+  State<VoicePriceSetAllInOnePage> createState() => _VoicePriceSetAllInOnePageState();
 }
 
-class _VoicePriceSetPageState extends State<VoicePriceSetPage> {
-  int step = 0;
+class _VoicePriceSetAllInOnePageState extends State<VoicePriceSetAllInOnePage> {
   String size = '대과';
   String unit = '5kg';
   String packaging = '박스포장';
   String discount = '설정안함';
   final TextEditingController priceController = TextEditingController();
 
-  void nextStep() {
-    if (step < 4) {
-      setState(() => step++);
-    } else {
-      // 완료 처리 (예: 저장, 다음 페이지 이동 등)
-    }
+  Widget _buildSelector(String title, List<String> options, String selected, ValueChanged<String> onSelect) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          children: options.map((opt) {
+            final bool isSelected = selected == opt;
+            return OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                backgroundColor: isSelected ? Colors.green[50] : Colors.white,
+                side: BorderSide(color: isSelected ? Colors.green : Colors.grey.shade300, width: 2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 22),
+              ),
+              onPressed: () => onSelect(opt),
+              child: Text(
+                opt,
+                style: TextStyle(
+                  color: isSelected ? Colors.green[800] : Colors.black,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 15,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 18),
+      ],
+    );
   }
-
-  Widget buildStepContent() {
-    switch (step) {
-      case 0:
-        return _StepSelector(
-          title: '과일 크기',
-          options: ['소과', '중과', '대과'],
-          selected: size,
-          onSelect: (v) => setState(() => size = v),
-        );
-      case 1:
-        return _StepSelector(
-          title: '판매 단위',
-          options: ['1kg', '3kg', '5kg'],
-          selected: unit,
-          onSelect: (v) => setState(() => unit = v),
-        );
-      case 2:
-        return _StepSelector(
-          title: '포장 방식',
-          options: ['무포장', '박스포장', '선물포장'],
-          selected: packaging,
-          onSelect: (v) => setState(() => packaging = v),
-        );
-      case 3:
-        return _StepInput(
-          title: '가격 설정',
-          controller: priceController,
-        );
-      case 4:
-        return _StepSelector(
-          title: '할인 적용',
-          options: ['설정함', '설정안함'],
-          selected: discount,
-          onSelect: (v) => setState(() => discount = v),
-        );
-      default:
-        return const SizedBox.shrink();
-    }
-  }
-
-  String get buttonText => step == 4 ? '완료' : '다음';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green[400],
-      body: SafeArea(
+      backgroundColor: const Color(0xFFF5F6FA),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('상품 가격 설정', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          padding: const EdgeInsets.all(24),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 상단 바
-              Padding(
-                padding: const EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () {
-                        if (step > 0) {
-                          setState(() => step--);
-                        } else {
-                          Navigator.of(context).pop();
-                        }
-                      },
-                    ),
-                    const Spacer(),
-                    Container(
-                      width: 44,
-                      height: 4,
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.green[200],
-                        borderRadius: BorderRadius.circular(2),
+              _buildSelector('과일 크기', ['소과', '중과', '대과'], size, (v) => setState(() => size)),
+              _buildSelector('판매 단위', ['1kg', '3kg', '5kg'], unit, (v) => setState(() => unit)),
+              _buildSelector('포장 방식', ['무포장', '박스포장', '선물포장'], packaging, (v) => setState(() => packaging)),
+              const Text('가격 설정', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: priceController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        hintText: '가격을 입력하세요',
+                        border: OutlineInputBorder(),
+                        isDense: true,
                       ),
-                      child: Stack(
-                        children: [
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            width: 44 * ((step + 1) / 5),
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: Center(
-                  child: buildStepContent(),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      elevation: 2,
-                    ),
-                    onPressed: nextStep,
-                    child: Text(
-                      buttonText,
-                      style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2),
                     ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              _buildSelector('할인 적용', ['설정함', '설정안함'], discount, (v) => setState(() => discount)),
+              const SizedBox(height: 30),
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const GeneratedDetailPage()),
+                    );
+                  },
+                  child: const Text('완료', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -2024,118 +2103,145 @@ class _VoicePriceSetPageState extends State<VoicePriceSetPage> {
   }
 }
 
-class _StepSelector extends StatelessWidget {
-  final String title;
-  final List<String> options;
-  final String selected;
-  final ValueChanged<String> onSelect;
-  const _StepSelector({required this.title, required this.options, required this.selected, required this.onSelect});
+// 상세 이미지 페이지 + 생성 완료 팝업
+class GeneratedDetailPage extends StatefulWidget {
+  const GeneratedDetailPage({super.key});
+
+  @override
+  State<GeneratedDetailPage> createState() => _GeneratedDetailPageState();
+}
+
+class _GeneratedDetailPageState extends State<GeneratedDetailPage> {
+  bool _showPopup = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _showPopup = false);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final bool isSmall = screenWidth < 370;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-      padding: const EdgeInsets.symmetric(vertical: 38, horizontal: 18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.10),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
         children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 1.1),
+          SingleChildScrollView(
+            child: Image.asset(
+              'assets/images/detail_sample.png',
+              fit: BoxFit.fitWidth,
+              width: MediaQuery.of(context).size.width,
+            ),
           ),
-          const SizedBox(height: 40),
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 10,
-            runSpacing: 14,
-            children: options.map((opt) {
-              final bool isSelected = selected == opt;
-              return OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: isSelected ? Colors.green[600] : Colors.white,
-                  side: BorderSide(color: isSelected ? Colors.green : Colors.grey.shade300, width: 2),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  padding: EdgeInsets.symmetric(
-                    vertical: isSmall ? 14 : 22,
-                    horizontal: isSmall ? 16 : 28,
+          if (_showPopup)
+            Positioned(
+              top: 48,
+              left: 24,
+              right: 24,
+              child: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.white,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200, width: 1.5),
                   ),
-                  elevation: 0,
-                ),
-                onPressed: () => onSelect(opt),
-                child: Text(
-                  opt,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black,
-                    fontWeight: FontWeight.w600,
-                    fontSize: isSmall ? 15 : 18,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.green, size: 28),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('생성 완료', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                            SizedBox(height: 2),
+                            Text('상세 화면이 성공적으로 생성되었습니다.', style: TextStyle(fontSize: 14)),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => setState(() => _showPopup = false),
+                        child: const Icon(Icons.close, size: 22, color: Colors.grey),
+                      ),
+                    ],
                   ),
                 ),
-              );
-            }).toList(),
-          ),
+              ),
+            ),
         ],
       ),
     );
   }
 }
 
-class _StepInput extends StatelessWidget {
-  final String title;
-  final TextEditingController controller;
-  const _StepInput({required this.title, required this.controller});
+// 후기/문의 별도 페이지 예시
+class AppleReview extends StatelessWidget {
+  const AppleReview({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-      padding: const EdgeInsets.symmetric(vertical: 38, horizontal: 18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.10),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('[KF365] 유명산지 고당도 사과', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        centerTitle: false,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      body: Column(
         children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 1.1),
+          Container(
+            color: Colors.white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _tab('상품설명'),
+                _tab('상세정보'),
+                _tab('후기 ', selected: true),
+                _tab('문의'),
+              ],
+            ),
           ),
-          const SizedBox(height: 40),
-          SizedBox(
-            width: 220,
-            child: TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-              decoration: InputDecoration(
-                hintText: '가격을 입력하세요',
-                suffixText: '원',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
-                filled: true,
-                fillColor: Colors.white,
-              ),
+          Expanded(
+            child: Column(
+              children: [
+                // 사진 후기, 후기 개수 등 예시
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                  child: Row(
+                    children: [
+                      ...List.generate(4, (i) => Expanded(
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          height: 60,
+                          color: Colors.grey[300],
+                          child: i == 3 ? const Center(child: Text('+ 더보기')) : null,
+                        ),
+                      )),
+                    ],
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('총 117,315 개', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text('추천순', style: TextStyle(color: Colors.grey)),
+                    ],
+                  ),
+                ),
+                // 후기 리스트 등 추가 가능
+              ],
             ),
           ),
         ],
@@ -2148,6 +2254,38 @@ class _StepInput extends StatelessWidget {
 class AiIntroPage extends StatelessWidget {
   const AiIntroPage({super.key});
 
+
+  Widget _tab(String label, {bool selected = false}) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: selected ? Colors.green : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? Colors.green : Colors.grey[700],
+              fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+              fontSize: 15,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AppleAsk extends StatelessWidget {
+  const AppleAsk({super.key});
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2159,6 +2297,7 @@ class AiIntroPage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
+
         title: const Text('AI 자동 작성', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
@@ -2211,6 +2350,51 @@ class AiIntroPage extends StatelessWidget {
               ),
             ),
           ],
+
+        title: const Text('[KF365] 유명산지 고당도 사과', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        centerTitle: false,
+      ),
+      body: Column(
+        children: [
+          Container(
+            color: Colors.white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _tab('상품설명'),
+                _tab('상세정보'),
+                _tab('후기 9,999+'),
+                _tab('문의', selected: true),
+              ],
+            ),
+          ),
+          // 문의 내용 등 추가 가능
+        ],
+      ),
+    );
+  }
+
+  Widget _tab(String label, {bool selected = false}) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: selected ? Colors.green : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? Colors.green : Colors.grey[700],
+              fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+              fontSize: 15,
+            ),
+          ),
         ),
       ),
     );
@@ -2293,4 +2477,5 @@ void showAiIntroModal(BuildContext context) {
       );
     },
   );
+
 }
