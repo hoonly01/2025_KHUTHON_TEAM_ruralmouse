@@ -891,6 +891,8 @@ class _OrderPageState extends State<OrderPage> {
   int get shippingFee => 3000;
   int get totalPrice => productPrice * quantity + shippingFee;
 
+  int _selectedPayment = -1; // -1: 아무것도 선택 안됨, 0: 온누리, 1: 신용카드, 2: 무통장, 3: 휴대폰
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1058,17 +1060,19 @@ class _OrderPageState extends State<OrderPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
+                          backgroundColor: _selectedPayment == 0 ? Colors.green[100] : Colors.white,
                           foregroundColor: Colors.black,
                           elevation: 0,
-                          side: const BorderSide(color: Colors.green, width: 1.5),
+                          side: BorderSide(color: _selectedPayment == 0 ? Colors.green : Colors.green, width: 1.5),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                           minimumSize: const Size(0, 54),
                           padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          setState(() => _selectedPayment = 0);
+                        },
                         child: const Text(
                           '디지털 온누리 상품권 사용',
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -1083,7 +1087,7 @@ class _OrderPageState extends State<OrderPage> {
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
+                              backgroundColor: _selectedPayment == 1 ? Colors.grey[300] : Colors.white,
                               foregroundColor: Colors.black,
                               side: const BorderSide(color: Colors.grey, width: 1.2),
                               elevation: 0,
@@ -1093,7 +1097,9 @@ class _OrderPageState extends State<OrderPage> {
                               minimumSize: const Size(0, 54),
                               padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                             ),
-                            onPressed: () {},
+                            onPressed: () {
+                              setState(() => _selectedPayment = 1);
+                            },
                             child: const Text(
                               '신용카드',
                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -1106,7 +1112,7 @@ class _OrderPageState extends State<OrderPage> {
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
+                              backgroundColor: _selectedPayment == 2 ? Colors.grey[300] : Colors.white,
                               foregroundColor: Colors.black,
                               side: const BorderSide(color: Colors.grey, width: 1.2),
                               elevation: 0,
@@ -1116,7 +1122,9 @@ class _OrderPageState extends State<OrderPage> {
                               minimumSize: const Size(0, 54),
                               padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                             ),
-                            onPressed: () {},
+                            onPressed: () {
+                              setState(() => _selectedPayment = 2);
+                            },
                             child: const Text(
                               '무통장 입금',
                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -1129,7 +1137,7 @@ class _OrderPageState extends State<OrderPage> {
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
+                              backgroundColor: _selectedPayment == 3 ? Colors.grey[300] : Colors.white,
                               foregroundColor: Colors.black,
                               side: const BorderSide(color: Colors.grey, width: 1.2),
                               elevation: 0,
@@ -1139,7 +1147,9 @@ class _OrderPageState extends State<OrderPage> {
                               minimumSize: const Size(0, 54),
                               padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                             ),
-                            onPressed: () {},
+                            onPressed: () {
+                              setState(() => _selectedPayment = 3);
+                            },
                             child: const Text(
                               '휴대폰 결제',
                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -1204,13 +1214,7 @@ class _OrderPageState extends State<OrderPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const GeneratedDetailPage(),
-                      ),
-                    );
-                  },
+                  onPressed: () {},
                   child: const Text('결제하기', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ),
@@ -2066,6 +2070,47 @@ class _VoicePriceSetAllInOnePageState extends State<VoicePriceSetAllInOnePage> {
     );
   }
 
+  void _showLoadingAndNavigate() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+            ),
+            SizedBox(height: 16),
+            Text(
+              '상품 정보를 생성중입니다...',
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    Future.delayed(const Duration(seconds: 5), () {
+      Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => ProductPreviewPage(
+            size: size,
+            unit: unit,
+            packaging: packaging,
+            discount: discount,
+            price: priceController.text.isEmpty ? '35,000' : priceController.text,
+          ),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2117,11 +2162,7 @@ class _VoicePriceSetAllInOnePageState extends State<VoicePriceSetAllInOnePage> {
                     backgroundColor: Colors.green,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const ProductDetailPage()),
-                    );
-                  },
+                  onPressed: _showLoadingAndNavigate,
                   child: const Text('완료', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ),
@@ -2521,4 +2562,235 @@ void showAiIntroModal(BuildContext context) {
     },
   );
 
+}
+
+// 상품 미리보기 페이지 (ProductDetailPage의 간소화 버전)
+class ProductPreviewPage extends StatefulWidget {
+  final String size;
+  final String unit;
+  final String packaging;
+  final String discount;
+  final String price;
+
+  const ProductPreviewPage({
+    super.key,
+    required this.size,
+    required this.unit,
+    required this.packaging,
+    required this.discount,
+    required this.price,
+  });
+
+  @override
+  State<ProductPreviewPage> createState() => _ProductPreviewPageState();
+}
+
+class _ProductPreviewPageState extends State<ProductPreviewPage> {
+  int _selectedTab = 0;
+  final List<String> _tabs = ['상품설명', '상세정보', '후기 0', '문의'];
+  bool _showPopup = false;
+
+  void _showCompletionPopup() {
+    setState(() => _showPopup = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const IntroScreen()),
+          (route) => false,
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          '춘산과수원',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+          overflow: TextOverflow.ellipsis,
+        ),
+        centerTitle: false,
+      ),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              // 탭바
+              Container(
+                color: Colors.white,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: List.generate(_tabs.length, (idx) {
+                    final selected = _selectedTab == idx;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedTab = idx),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: selected ? Colors.green : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          _tabs[idx],
+                          style: TextStyle(
+                            color: selected ? Colors.green : Colors.grey[700],
+                            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // 상품 이미지
+                      Image.asset(
+                        'assets/images/apple.png',
+                        width: double.infinity,
+                        fit: BoxFit.fitWidth,
+                      ),
+                      // 상품 정보 카드 (양옆 여백 없이 전체 너비)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('유명산지 고당도 사과 ${widget.unit}',
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            Text('${widget.size} / ${widget.packaging}',
+                                style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                            const SizedBox(height: 8),
+                            const Text('원산지: 국산', style: TextStyle(fontSize: 14)),
+                            const SizedBox(height: 10),
+                            Text('₩${widget.price}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+                          ],
+                        ),
+                      ),
+                      // 상품설명
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const ProductOptionTable(),
+                      ),
+                      // 상세정보
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        padding: const EdgeInsets.all(0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.asset(
+                            'assets/images/detail_sample.png',
+                            fit: BoxFit.fitWidth,
+                            width: double.infinity,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 80), // 하단 버튼 공간 확보
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (_showPopup)
+            Positioned(
+              top: 48,
+              left: 24,
+              right: 24,
+              child: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.white,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200, width: 1.5),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.green, size: 28),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('게시 완료', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                            SizedBox(height: 2),
+                            Text('상품이 성공적으로 등록되었습니다.', style: TextStyle(fontSize: 14)),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => setState(() => _showPopup = false),
+                        child: const Icon(Icons.close, size: 22, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: _showCompletionPopup,
+            child: const Text(
+              "게시하기",
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
