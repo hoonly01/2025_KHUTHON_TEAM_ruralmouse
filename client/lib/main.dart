@@ -1114,13 +1114,18 @@ class _OrderPageState extends State<OrderPage> {
 }
 
 // 상세 화면 작성 페이지
-class DetailCreatePage extends StatelessWidget {
+class DetailCreatePage extends StatefulWidget {
   const DetailCreatePage({super.key});
 
   @override
+  State<DetailCreatePage> createState() => _DetailCreatePageState();
+}
+
+class _DetailCreatePageState extends State<DetailCreatePage> {
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -1128,32 +1133,65 @@ class DetailCreatePage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text('판매글 작성', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: const Text('홍보 방법 선택', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 40),
-            _SelectBox(
+            // 안내 박스
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+              margin: const EdgeInsets.only(bottom: 32),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.green, width: 2),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '홍보 방법을',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      height: 1.1,
+                    ),
+                  ),
+                  Text(
+                    '선택해주세요',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      height: 1.1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // PDF 첨부하기 버튼
+            _PromoSelectCard(
               title: 'PDF 첨부하기',
-              subtitle: '직접 만드신 상품 소개서의\nPDF를 첨부해주세요.',
+              description: '직접 만든 상품 소개서 PDF를 첨부해 주세요.',
+              icon: Icons.picture_as_pdf,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const PdfUploadPage()),
                 );
               },
             ),
-            const SizedBox(height: 32),
-            _SelectBox(
-              title: '자동으로 생성하기',
-              subtitle: '사진과 음성을 통해서 자동으로\n상품의 상세 화면을 생성해드려요.',
+            const SizedBox(height: 6),
+            _PromoSelectCard(
+              title: '자동 생성하기',
+              description: '사진과 음성으로 상품 소개서를 자동으로 만들어드려요.',
+              icon: Icons.auto_awesome,
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const AutoGeneratePage()),
-                );
+                showAiIntroModal(context);
               },
             ),
           ],
@@ -1161,6 +1199,65 @@ class DetailCreatePage extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _PromoSelectCard({
+  required String title,
+  required String description,
+  required VoidCallback onTap,
+  IconData? icon,
+}) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(18),
+    child: Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          if (icon != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 18),
+              child: Icon(icon, color: Colors.green, size: 38),
+            ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _SelectBox extends StatelessWidget {
@@ -1288,9 +1385,7 @@ class _PdfUploadPageState extends State<PdfUploadPage> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: fileName == null
                     ? null
@@ -1622,7 +1717,7 @@ class _AutoGeneratePageState extends State<AutoGeneratePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -1639,11 +1734,65 @@ class _AutoGeneratePageState extends State<AutoGeneratePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // 녹음 꿀팁 안내 박스 (더 크고 강조)
+              Container(
+                margin: const EdgeInsets.only(bottom: 32),
+                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 22),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.green, width: 2),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.lightbulb, color: Colors.amber, size: 40),
+                    const SizedBox(width: 18),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            '녹음 꿀팁!',
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                '농가의 장점을',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              Text(
+                                '전부 다 말해주세요',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               // 사진 추가
               GestureDetector(
                 onTap: _pickImage,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  padding: const EdgeInsets.symmetric(vertical: 40),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
@@ -1657,32 +1806,18 @@ class _AutoGeneratePageState extends State<AutoGeneratePage> {
                           child: Image.file(_selectedImage!, width: 120, height: 120, fit: BoxFit.cover),
                         )
                       else ...[
-                        Icon(Icons.add, size: 40, color: Colors.grey[400]),
+                        Icon(Icons.add, size: 48, color: Colors.green),
                         const SizedBox(height: 8),
                         Text('사진 추가', style: TextStyle(color: Colors.grey[700], fontSize: 16)),
                       ],
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          ),
-                          onPressed: _pickImage,
-                          icon: const Icon(Icons.image),
-                          label: const Text('사진 업로드하기'),
-                        ),
-                      ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               // 음성 녹음
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+                padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 8),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -1690,47 +1825,21 @@ class _AutoGeneratePageState extends State<AutoGeneratePage> {
                 ),
                 child: Column(
                   children: [
-                    Icon(Icons.mic, size: 40, color: Colors.green),
-                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: isRecording ? _stopRecording : _startRecording,
+                      child: Icon(
+                        Icons.mic,
+                        size: 48,
+                        color: isRecording ? Colors.red : Colors.green,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Text(
                       _formatDuration(recordDuration),
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
-                    Text(isRecording ? '녹음 중...' : '녹음 준비', style: TextStyle(color: Colors.grey[600], fontSize: 15)),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                        onPressed: isRecording ? _stopRecording : _startRecording,
-                        icon: Icon(isRecording ? Icons.stop : Icons.mic),
-                        label: Text(isRecording ? '녹음 종료' : '녹음 시작'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              // 녹음 팁
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.green[50],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('음성 설명 녹음 팁:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    SizedBox(height: 8),
-                    Text('• 상품의 주요 특징을 말씀해주세요'),
-                    Text('• 재배 방법이나 특별한 점을 언급해주세요'),
-                    Text('• 소비자에게 전하고 싶은 메시지를 담아주세요'),
+                    Text(isRecording ? '녹음 중...' : '녹음 시작', style: TextStyle(color: Colors.grey[600], fontSize: 15)),
                   ],
                 ),
               ),
@@ -1754,7 +1863,7 @@ class _AutoGeneratePageState extends State<AutoGeneratePage> {
                 MaterialPageRoute(builder: (_) => const VoicePriceSetPage()),
               );
             },
-            child: const Text('업로드 완료', style: TextStyle(fontSize: 16, color: Colors.white)),
+            child: const Text('작성 완료', style: TextStyle(fontSize: 16, color: Colors.white)),
           ),
         ),
       ),
@@ -2033,4 +2142,155 @@ class _StepInput extends StatelessWidget {
       ),
     );
   }
+}
+
+// AI 소개 페이지
+class AiIntroPage extends StatelessWidget {
+  const AiIntroPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('AI 자동 작성', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 40),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Color(0xFFF3F6FF),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '✨AI가 도와줘요!',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    '사진을 녹음을 등록하면 AI가 자동으로 글을 작성해요.\n빠르고 간편하게 판매를 시작해보세요.',
+                    style: TextStyle(fontSize: 16, color: Colors.black87, height: 1.5),
+                  ),
+                ],
+              ),
+            ),
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 2,
+                ),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AutoGeneratePage()),
+                  );
+                },
+                child: const Text(
+                  '확인',
+                  style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+void showAiIntroModal(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) {
+      final mq = MediaQuery.of(context);
+      return Stack(
+        children: [
+          // 반투명 배경
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              width: mq.size.width,
+              height: mq.size.height,
+              color: Colors.black.withOpacity(0.25),
+            ),
+          ),
+          Center(
+            child: Container(
+              width: mq.size.width * 0.85,
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.10),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '✨AI가 도와줘요!',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    '사진을 녹음을 등록하면 AI가 자동으로 글을 작성해요.\n빠르고 간편하게 판매를 시작해보세요.',
+                    style: TextStyle(fontSize: 16, color: Colors.black87, height: 1.5),
+                  ),
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        elevation: 2,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const AutoGeneratePage()),
+                        );
+                      },
+                      child: const Text(
+                        '확인',
+                        style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
 }
