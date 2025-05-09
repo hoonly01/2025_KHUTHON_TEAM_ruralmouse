@@ -1,0 +1,37 @@
+{
+  "id": "HUhHaHORQ92vFso6dOvKvQ",
+  "status": "completed",
+  "results": {
+    "utterances": [
+      {
+        "start_at": 2221,
+        "duration": 9080,
+        "spk": 0,
+        "spk_type": "NORMAL",
+        "msg": "학교에서 가르쳐주지 않는 일본사 방구성 미술관 미움 받을 용기 고가후미탁해 작가의 문장수업 나의 로망 로마."
+      },
+      {
+        "start_at": 11701,
+        "duration": 1140,
+        "spk": 1,
+        "spk_type": "NORMAL",
+        "msg": "내가 틀릴 수도 있습니다."
+      },
+      {
+        "start_at": 13831,
+        "duration": 6426,
+        "spk": 0,
+        "spk_type": "NORMAL",
+        "msg": "마음의 법칙, 사람의 마음을 마 자로사로잡는 오십, 일 까지 심리략 마음의 법칙, 철학은 어떻게 살면 무기가 되는가."
+      },
+      {
+        "start_at": 20757,
+        "duration": 2960,
+        "spk": 0,
+        "spk_type": "NORMAL",
+        "msg": "호감 가는 말투에는 비밀 있다. 우리말을 어감사전."
+      }
+    ],
+    "verified": false
+  }
+}
