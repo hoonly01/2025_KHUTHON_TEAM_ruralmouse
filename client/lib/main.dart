@@ -1900,7 +1900,7 @@ class _AutoGeneratePageState extends State<AutoGeneratePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: const [
                               Text(
-                                '농가의 장점을',
+                                '이 상품의 장점을',
                                 style: TextStyle(
                                   color: Colors.grey,
                                   fontWeight: FontWeight.w500,
